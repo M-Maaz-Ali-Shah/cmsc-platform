@@ -215,3 +215,13 @@ export const websiteSettings = sqliteTable("website_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+// ---------- Rate limiting ----------
+// D1-backed (not the Cloudflare Workers "ratelimits" binding — see the note
+// in wrangler.jsonc for why). Fixed-window counter per key, e.g.
+// "login:<email>" or "contact:<ip>".
+export const rateLimitBuckets = sqliteTable("rate_limit_buckets", {
+  key: text("key").primaryKey(),
+  windowStart: integer("window_start").notNull(), // unix seconds, start of the current fixed window
+  count: integer("count").notNull().default(0),
+});

@@ -47,6 +47,17 @@
 		"binding": "IMAGES"
 	},
 
+	// NOTE: rate limiting is implemented via D1 (see src/lib/rate-limit.ts),
+	// not the Cloudflare Workers "ratelimits" binding. That binding's Durable
+	// Object-backed state was verified (during development, via a minimal
+	// reproduction) to NOT persist across separate Next.js Server Action
+	// invocations under the OpenNext Cloudflare adapter + wrangler dev, even
+	// though it works correctly from plain Route Handlers — every rate-limited
+	// entry point in this app (login, sighting reports, contact, newsletter)
+	// is a Server Action, so the binding would have silently never enforced
+	// anything. D1 is already proven reliable from Server Actions throughout
+	// this app, so rate-limit bookkeeping reuses that instead.
+
 	// Non-secret configuration. Secrets (RESEND_API_KEY, SESSION_SECRET) are set
 	// separately with `wrangler secret put <NAME>` — see DEPLOY.md.
 	"vars": {

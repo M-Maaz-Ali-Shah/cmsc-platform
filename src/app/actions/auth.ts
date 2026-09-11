@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import { getDb, getCf, schema } from "@/db/client";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSession, deleteSession, type Role } from "@/lib/auth/session";
+import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
+import { timingSafeStringEqual } from "@/lib/auth/password";
 import {
   LoginSchema,
   SetupSchema,
@@ -31,12 +33,18 @@ export async function login(
 
   const { email, password } = parsed.data;
   const next = formData.get("next");
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const { allowed } = await checkRateLimit("auth", `login:${normalizedEmail}`);
+  if (!allowed) {
+    return { error: RATE_LIMIT_MESSAGE };
+  }
 
   const db = await getDb();
   const rows = await db
     .select()
     .from(schema.users)
-    .where(eq(schema.users.email, email.toLowerCase().trim()))
+    .where(eq(schema.users.email, normalizedEmail))
     .limit(1);
   const user = rows[0];
 
@@ -96,7 +104,7 @@ export async function createFirstAdmin(
         "ADMIN_SETUP_TOKEN is not configured on the server. Set it in .dev.vars locally or `wrangler secret put ADMIN_SETUP_TOKEN` in production.",
     };
   }
-  if (token !== expected) {
+  if (!timingSafeStringEqual(token, expected)) {
     return { error: "Invalid setup token." };
   }
 

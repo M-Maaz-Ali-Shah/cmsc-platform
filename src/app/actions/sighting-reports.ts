@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { getDb, getCf, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
+import { checkRateLimitByIp, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import {
   SightingReportSchema,
   MAX_UPLOAD_BYTES,
@@ -63,6 +64,11 @@ export async function submitSightingReport(
   // Honeypot: real visitors never fill this hidden field.
   if (formData.get("website")) {
     return { error: "Submission could not be processed. Please try again." };
+  }
+
+  const { allowed } = await checkRateLimitByIp("forms", "sighting-report");
+  if (!allowed) {
+    return { error: RATE_LIMIT_MESSAGE };
   }
 
   const parsed = SightingReportSchema.safeParse(Object.fromEntries(formData.entries()));

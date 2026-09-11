@@ -8,6 +8,13 @@
       "when": 1789061045321,
       "tag": "0000_bouncy_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789114105104,
+      "tag": "0001_glossy_pride",
+      "breakpoints": true
     }
   ]
 }

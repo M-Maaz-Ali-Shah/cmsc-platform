@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { getDb, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
+import { checkRateLimitByIp, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import { ContactSchema, NewsletterSchema, type ContactFormState, type NewsletterFormState } from "@/lib/validation/contact";
 
 export async function submitContactMessage(
@@ -13,6 +14,11 @@ export async function submitContactMessage(
 ): Promise<ContactFormState> {
   if (formData.get("website")) {
     return { error: "Submission could not be processed. Please try again." };
+  }
+
+  const { allowed } = await checkRateLimitByIp("forms", "contact");
+  if (!allowed) {
+    return { error: RATE_LIMIT_MESSAGE };
   }
 
   const parsed = ContactSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -41,6 +47,11 @@ export async function subscribeNewsletter(
 ): Promise<NewsletterFormState> {
   if (formData.get("website")) {
     return { error: "Submission could not be processed." };
+  }
+
+  const { allowed } = await checkRateLimitByIp("forms", "newsletter");
+  if (!allowed) {
+    return { error: RATE_LIMIT_MESSAGE };
   }
 
   const parsed = NewsletterSchema.safeParse(Object.fromEntries(formData.entries()));

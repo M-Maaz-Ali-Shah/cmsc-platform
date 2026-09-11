@@ -67,3 +67,21 @@ export async function verifyPassword(
 export function generateRandomToken(bytes = 24): string {
   return toHex(crypto.getRandomValues(new Uint8Array(bytes)));
 }
+
+/**
+ * Constant-time string comparison — use for any secret comparison (setup
+ * tokens, reset tokens, etc.) instead of `===`, which short-circuits on the
+ * first mismatched character and can leak timing information.
+ */
+export function timingSafeStringEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  // Compare against a fixed-length buffer so the loop length doesn't itself
+  // leak the length of `a` relative to `b`.
+  const len = Math.max(aBytes.length, bBytes.length, 1);
+  let mismatch = aBytes.length === bBytes.length ? 0 : 1;
+  for (let i = 0; i < len; i++) {
+    mismatch |= (aBytes[i] ?? 0) ^ (bBytes[i] ?? 0);
+  }
+  return mismatch === 0;
+}
