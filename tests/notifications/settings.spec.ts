@@ -37,6 +37,23 @@ test("disabling a notification type logs 'skipped' instead of attempting to send
 test("an enabled notification is attempted and logged (sent or failed, never silently dropped)", async ({
   page,
 }) => {
+  // This test needs an actual recipient configured (Settings → Support
+  // email) so sendNotification() takes the send-attempt path rather than
+  // its own "no recipient configured" skip path (see the corresponding
+  // comment in src/app/actions/notifications.ts) — on a genuinely fresh
+  // D1 (e.g. a first CI run, or a fresh production deploy before any
+  // admin has visited Settings) that field starts blank. Set it only if
+  // it's currently blank, and restore it to blank afterward — never
+  // overwrite an already-configured real value.
+  await page.goto("/admin/dashboard/settings");
+  const supportEmailInput = page.getByLabel("Support email");
+  const wasBlank = (await supportEmailInput.inputValue()) === "";
+  if (wasBlank) {
+    await supportEmailInput.fill("pw-notification-tests@example.test");
+    await page.getByRole("button", { name: "Save Settings" }).click();
+    await expect(page.getByText("Settings saved.")).toBeVisible();
+  }
+
   const email = `pw-notif-attempt-${Date.now()}@example.test`;
   const subject = `Notification attempt test ${Date.now()}`;
   await page.goto("/contact");
@@ -55,4 +72,13 @@ test("an enabled notification is attempted and logged (sent or failed, never sil
   // (with a reason, never silently nothing) if not — either is a real
   // attempt, unlike the "skipped" case above.
   expect(["sent", "failed"]).toContain(rows[0].status);
+
+  // Restore the support email to blank if this test was the one that set
+  // it, so it doesn't leave a fake address behind for real admin use.
+  if (wasBlank) {
+    await page.goto("/admin/dashboard/settings");
+    await page.getByLabel("Support email").fill("");
+    await page.getByRole("button", { name: "Save Settings" }).click();
+    await expect(page.getByText("Settings saved.")).toBeVisible();
+  }
 });

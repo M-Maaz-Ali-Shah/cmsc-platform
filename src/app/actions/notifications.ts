@@ -105,9 +105,30 @@ export async function sendNotification({
   html: string;
   relatedEntity?: string;
 }): Promise<void> {
-  if (!recipient) return; // nothing configured to send to (e.g. no support email set) — silently no-op
-
   const db = await getDb();
+
+  if (!recipient) {
+    // No recipient configured (e.g. no support email set in Settings yet)
+    // — still log it as "skipped" rather than silently no-op'ing. This is
+    // exactly the gap the docstring above promises never happens: without
+    // this, a fresh deployment where nobody has visited Settings yet would
+    // drop every contact/sighting notification with zero trace anywhere,
+    // which looks indistinguishable from the notification system being
+    // silently broken. Found via the Playwright suite's first real run
+    // against a genuinely fresh D1 (no seeded settings) in GitHub Actions
+    // CI — every prior local run had a support email already configured
+    // in `.wrangler` state left over from manual testing, which hid this.
+    await db.insert(schema.notificationLog).values({
+      id: crypto.randomUUID(),
+      type,
+      recipient: "(none configured)",
+      status: "skipped",
+      relatedEntity: relatedEntity ?? null,
+      failureReason: "No recipient configured — set a support email under Dashboard → Settings.",
+    });
+    return;
+  }
+
   const settings = await getNotificationSettings();
 
   if (!settings.masterEnabled || !settings[type]) {
