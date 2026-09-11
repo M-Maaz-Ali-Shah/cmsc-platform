@@ -1,10 +1,11 @@
 import * as z from "zod";
+import { httpUrlSchema } from "./shared";
 
 export const SettingsSchema = z.object({
   siteName: z.string().trim().min(2).max(200),
   supportEmail: z.email({ error: "Enter a valid email address." }).optional().or(z.literal("")),
-  facebookUrl: z.url({ error: "Enter a valid URL." }).optional().or(z.literal("")),
-  youtubeUrl: z.url({ error: "Enter a valid URL." }).optional().or(z.literal("")),
+  facebookUrl: httpUrlSchema().optional().or(z.literal("")),
+  youtubeUrl: httpUrlSchema().optional().or(z.literal("")),
   defaultLanguage: z.enum(["en", "ur", "ar"]),
   timezone: z.string().trim().min(2).max(100),
 });

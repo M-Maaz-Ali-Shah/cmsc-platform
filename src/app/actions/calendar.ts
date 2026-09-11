@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { getDb, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
-import { CalendarEntrySchema, type CalendarEntryFormState } from "@/lib/validation/calendar-entry";
+import { CalendarEntrySchema, OFFICIAL_STATUSES, type CalendarEntryFormState } from "@/lib/validation/calendar-entry";
 
 const MANAGER_ROLES = ["super_admin", "committee_admin"] as const;
 
@@ -47,6 +47,10 @@ export async function createCalendarEntry(
 
 export async function updateCalendarEntryStatus(id: string, officialStatus: string, officialDate: string | null) {
   const user = await requireUser([...MANAGER_ROLES]);
+  if (!OFFICIAL_STATUSES.includes(officialStatus as (typeof OFFICIAL_STATUSES)[number])) {
+    throw new Error("Invalid status.");
+  }
+
   const db = await getDb();
   const rows = await db.select({ hijriMonth: schema.calendarEntries.hijriMonth, hijriYear: schema.calendarEntries.hijriYear }).from(schema.calendarEntries).where(eq(schema.calendarEntries.id, id)).limit(1);
   const entry = rows[0];
