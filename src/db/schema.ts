@@ -216,6 +216,23 @@ export const websiteSettings = sqliteTable("website_settings", {
   value: text("value").notNull(),
 });
 
+// ---------- Website content (CMS) ----------
+// Structured, field-based content only (never raw HTML) — each block's
+// `fields` column is a small JSON object of plain strings, rendered as
+// plain text/paragraphs by React (auto-escaped), so there is no stored-XSS
+// surface here the way a rich-text/HTML editor would introduce.
+export const contentBlocks = sqliteTable("content_blocks", {
+  id: text("id").primaryKey(), // slug, e.g. "homepage-hero"
+  label: text("label").notNull(), // human label shown in the admin list
+  draftFields: text("draft_fields").notNull(), // JSON — the working copy
+  publishedFields: text("published_fields"), // JSON — null until first published; what the public site reads
+  updatedByName: text("updated_by_name").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  publishedAt: integer("published_at", { mode: "timestamp" }),
+});
+
 // ---------- Rate limiting ----------
 // D1-backed (not the Cloudflare Workers "ratelimits" binding — see the note
 // in wrangler.jsonc for why). Fixed-window counter per key, e.g.

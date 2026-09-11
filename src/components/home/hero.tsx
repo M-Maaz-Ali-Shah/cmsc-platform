@@ -7,9 +7,11 @@ import { Container } from "@/components/ui/container";
 
 interface HeroProps {
   regionsCovered: number;
+  title: string;
+  description: string;
 }
 
-export function Hero({ regionsCovered }: HeroProps) {
+export function Hero({ regionsCovered, title, description }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-navy-950 text-white">
       {/* astronomical backdrop */}
@@ -32,16 +34,14 @@ export function Hero({ regionsCovered }: HeroProps) {
             </Badge>
 
             <h1 className="font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-              Central Moon Sighting Committee
+              {title}
             </h1>
             <p className="mt-3 text-lg font-semibold uppercase tracking-[0.18em] text-gold-400 sm:text-xl">
               Great Britain &amp; Europe
             </p>
 
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-              Official moon-sighting announcements, reports and Islamic
-              calendar information for communities across Great Britain and
-              Europe.
+              {description}
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">

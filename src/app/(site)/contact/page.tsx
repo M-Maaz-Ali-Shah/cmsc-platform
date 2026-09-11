@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { FacebookGlyph, YoutubeGlyph } from "@/components/brand/social-icons";
 import { ContactForm } from "@/components/contact/contact-form";
 import { getSettings } from "@/app/actions/settings";
+import { getPublishedContent } from "@/app/actions/content";
 import { getDb, schema } from "@/db/client";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const settings = await getSettings();
+  const [settings, intro] = await Promise.all([
+    getSettings(),
+    getPublishedContent("contact-intro", {
+      text: "Questions about a sighting, an announcement, or how to get involved? Reach us through the channels below.",
+    }),
+  ]);
 
   const db = await getDb();
   const activeRegions = await db
@@ -40,7 +46,7 @@ export default async function ContactPage() {
         crumb="Contact"
         eyebrow="Get in Touch"
         title="Contact"
-        description="Questions about a sighting, an announcement, or how to get involved? Reach us through the channels below."
+        description={intro.text}
       />
 
       <section className="py-14 sm:py-16">

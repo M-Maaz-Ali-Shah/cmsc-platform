@@ -4,8 +4,17 @@ import { Mail } from "lucide-react";
 import { LogoLockup } from "@/components/brand/logo-lockup";
 import { FacebookGlyph, YoutubeGlyph } from "@/components/brand/social-icons";
 import { footerNav, legalNav } from "@/lib/site-config";
+import { getPublishedContent } from "@/app/actions/content";
+import { getSettings } from "@/app/actions/settings";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const [{ text: tagline }, settings] = await Promise.all([
+    getPublishedContent("footer-text", {
+      text: "Official moon-sighting announcements, reports and Islamic calendar information for communities across Great Britain and Europe.",
+    }),
+    getSettings(),
+  ]);
+
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-navy-950 text-white/70">
       <div className="crescent-field pointer-events-none absolute inset-0 opacity-60" aria-hidden />
@@ -13,32 +22,39 @@ export function SiteFooter() {
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="max-w-sm">
             <LogoLockup variant="onDark" />
-            <p className="mt-4 text-sm leading-relaxed text-white/60">
-              Official moon-sighting announcements, reports and Islamic calendar
-              information for communities across Great Britain and Europe.
-            </p>
+            <p className="mt-4 text-sm leading-relaxed text-white/60">{tagline}</p>
             <div className="mt-5 flex items-center gap-3">
-              <a
-                href="#"
-                aria-label="Official Facebook page"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 hover:border-gold-400 hover:text-gold-400"
-              >
-                <FacebookGlyph className="size-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="Official YouTube channel"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 hover:border-gold-400 hover:text-gold-400"
-              >
-                <YoutubeGlyph className="size-4" />
-              </a>
-              <a
-                href="mailto:info@example.org"
-                aria-label="Email the committee"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 hover:border-gold-400 hover:text-gold-400"
-              >
-                <Mail className="size-4" />
-              </a>
+              {settings.facebookUrl && (
+                <a
+                  href={settings.facebookUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Official Facebook page"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 hover:border-gold-400 hover:text-gold-400"
+                >
+                  <FacebookGlyph className="size-4" />
+                </a>
+              )}
+              {settings.youtubeUrl && (
+                <a
+                  href={settings.youtubeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Official YouTube channel"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 hover:border-gold-400 hover:text-gold-400"
+                >
+                  <YoutubeGlyph className="size-4" />
+                </a>
+              )}
+              {settings.supportEmail && (
+                <a
+                  href={`mailto:${settings.supportEmail}`}
+                  aria-label="Email the committee"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 hover:border-gold-400 hover:text-gold-400"
+                >
+                  <Mail className="size-4" />
+                </a>
+              )}
             </div>
           </div>
 

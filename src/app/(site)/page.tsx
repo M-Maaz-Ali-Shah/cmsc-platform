@@ -14,6 +14,7 @@ import { MediaPreview } from "@/components/home/media-preview";
 import { Newsletter } from "@/components/home/newsletter";
 import { getDb, schema } from "@/db/client";
 import { CALENDAR_STATUS_MAP } from "@/lib/calendar-data";
+import { getPublishedContent } from "@/app/actions/content";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ const DECIDED_STATUSES = ["Accepted", "Rejected", "Included in Decision"];
 
 export default async function Home() {
   const db = await getDb();
-  const [reports, calendarRows, publishedAnnouncements, regionsRows, mediaRows] = await Promise.all([
+  const [reports, calendarRows, publishedAnnouncements, regionsRows, mediaRows, hero] = await Promise.all([
     db.select().from(schema.sightingReports),
     db.select().from(schema.calendarEntries).orderBy(asc(schema.calendarEntries.sortOrder)),
     db
@@ -33,6 +34,11 @@ export default async function Home() {
       .limit(4),
     db.select().from(schema.regions).orderBy(asc(schema.regions.sortOrder)),
     db.select().from(schema.media).orderBy(desc(schema.media.createdAt)).limit(4),
+    getPublishedContent("homepage-hero", {
+      title: "Central Moon Sighting Committee",
+      description:
+        "Official moon-sighting announcements, reports and Islamic calendar information for communities across Great Britain and Europe.",
+    }),
   ]);
 
   const current = calendarRows.find((r) => r.officialStatus === "Current Month") ?? null;
@@ -51,7 +57,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero regionsCovered={regionsRows.length} />
+      <Hero regionsCovered={regionsRows.length} title={hero.title} description={hero.description} />
       <CurrentMonth
         current={
           current

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getDb, schema } from "@/db/client";
 import { CALENDAR_STATUS_MAP } from "@/lib/calendar-data";
+import { getPublishedContent } from "@/app/actions/content";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,12 @@ const DECIDED_STATUSES = ["Accepted", "Rejected", "Included in Decision"];
 
 export default async function MoonSightingPage() {
   const db = await getDb();
-  const [reports, calendarRows] = await Promise.all([
+  const [reports, calendarRows, intro] = await Promise.all([
     db.select().from(schema.sightingReports),
     db.select().from(schema.calendarEntries).orderBy(asc(schema.calendarEntries.sortOrder)),
+    getPublishedContent("moon-sighting-intro", {
+      text: "A real-time view of where the committee's review process stands, and how sighting reports are distributed across our regional network.",
+    }),
   ]);
 
   const total = reports.length;
@@ -63,7 +67,7 @@ export default async function MoonSightingPage() {
         crumb="Moon Sighting"
         eyebrow="Live Status"
         title="Moon Sighting"
-        description="A real-time view of where the committee's review process stands, and how sighting reports are distributed across our regional network."
+        description={intro.text}
       >
         <Button asChild variant="gold" size="lg">
           <Link href="/report-sighting">Report a Sighting</Link>

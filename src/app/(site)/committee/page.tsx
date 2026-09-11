@@ -6,6 +6,7 @@ import { PageBanner } from "@/components/layout/page-banner";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { getDb, schema } from "@/db/client";
+import { getPublishedContent } from "@/app/actions/content";
 
 export const dynamic = "force-dynamic";
 
@@ -17,20 +18,20 @@ export const metadata: Metadata = {
 
 export default async function CommitteePage() {
   const db = await getDb();
-  const members = await db
-    .select()
-    .from(schema.committeeMembers)
-    .where(eq(schema.committeeMembers.approved, true))
-    .orderBy(asc(schema.committeeMembers.sortOrder));
+  const [members, intro] = await Promise.all([
+    db
+      .select()
+      .from(schema.committeeMembers)
+      .where(eq(schema.committeeMembers.approved, true))
+      .orderBy(asc(schema.committeeMembers.sortOrder)),
+    getPublishedContent("committee-intro", {
+      text: "The committee brings together scholars, astronomical advisers and regional representatives across Great Britain and Europe. Member details are published here only once approved by administrators.",
+    }),
+  ]);
 
   return (
     <>
-      <PageBanner
-        crumb="Committee"
-        eyebrow="Governance"
-        title="Committee"
-        description="The committee brings together scholars, astronomical advisers and regional representatives across Great Britain and Europe. Member details are published here only once approved by administrators."
-      />
+      <PageBanner crumb="Committee" eyebrow="Governance" title="Committee" description={intro.text} />
 
       <section className="py-14 sm:py-16">
         <Container>
