@@ -172,6 +172,7 @@ function EntryCard({ entry, canEdit }: { entry: CalendarEntryRow; canEdit: boole
             size="sm"
             variant="outline"
             disabled={pending}
+            aria-label={`Remove ${entry.hijriMonth} ${entry.hijriYear}`}
             onClick={() => {
               if (confirm(`Remove ${entry.hijriMonth} ${entry.hijriYear} from the calendar?`)) {
                 startTransition(() => deleteCalendarEntry(entry.id));

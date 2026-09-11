@@ -179,6 +179,7 @@ function RegionRow({
             size="sm"
             variant="outline"
             disabled={pending}
+            aria-label={`Remove ${region.name}`}
             onClick={() => {
               if (confirm(`Remove ${region.name} from the region list?`)) {
                 startTransition(() => deleteRegion(region.id));

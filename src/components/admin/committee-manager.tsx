@@ -132,6 +132,7 @@ function MemberCard({ member, canEdit }: { member: CommitteeMemberRow; canEdit: 
             size="sm"
             variant="outline"
             disabled={pending}
+            aria-label={`Remove ${member.name}`}
             onClick={() => {
               if (confirm(`Remove ${member.name} from the committee list?`)) {
                 startTransition(() => deleteCommitteeMember(member.id));

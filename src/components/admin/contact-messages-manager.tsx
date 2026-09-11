@@ -62,6 +62,7 @@ function MessageCard({ message, canEdit }: { message: ContactMessageRow; canEdit
             size="sm"
             variant="outline"
             disabled={pending}
+            aria-label={`Delete message from ${message.name}`}
             onClick={() => {
               if (confirm("Delete this message?")) startTransition(() => deleteContactMessage(message.id));
             }}

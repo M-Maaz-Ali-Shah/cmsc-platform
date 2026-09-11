@@ -131,6 +131,7 @@ function MediaCard({ item, canEdit }: { item: MediaRow; canEdit: boolean }) {
           variant="outline"
           disabled={pending}
           className="relative mt-3 w-fit bg-white/90 text-navy-900 hover:bg-white"
+          aria-label={`Remove ${item.title}`}
           onClick={() => {
             if (confirm(`Remove "${item.title}"?`)) startTransition(() => deleteMedia(item.id));
           }}

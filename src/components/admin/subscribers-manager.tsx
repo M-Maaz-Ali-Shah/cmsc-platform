@@ -60,6 +60,7 @@ function SubscriberRowItem({ subscriber, canEdit }: { subscriber: SubscriberRow;
             size="sm"
             variant="outline"
             disabled={pending}
+            aria-label={`Remove ${subscriber.email}`}
             onClick={() => {
               if (confirm(`Remove ${subscriber.email} from the subscriber list?`)) {
                 startTransition(() => deleteSubscriber(subscriber.id));
