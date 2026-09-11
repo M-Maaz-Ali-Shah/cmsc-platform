@@ -1,0 +1,15 @@
+# Copy this file to `.dev.vars` (same folder) for local development.
+# `.dev.vars` is gitignored — never commit real secrets.
+# In production these are set with `wrangler secret put <NAME>` instead — see DEPLOY.md.
+
+# Used to sign session tokens and CSRF/setup tokens. Generate a random value, e.g.:
+#   node -e "console.log(crypto.randomUUID()+crypto.randomUUID())"
+SESSION_SECRET=change-this-to-a-long-random-string
+
+# Optional but recommended: a one-time secret that unlocks the /admin/setup page
+# used to create the first Super Admin account. Remove/rotate after first use.
+ADMIN_SETUP_TOKEN=change-this-too
+
+# From https://resend.com (free tier). Leave blank to disable outgoing email —
+# the app still works, it just logs emails instead of sending them.
+RESEND_API_KEY=

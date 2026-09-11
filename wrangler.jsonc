@@ -1,0 +1,56 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "cmsc-platform",
+	"compatibility_date": "2025-09-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, required by the OpenNext Cloudflare adapter for caching.
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "cmsc-platform"
+		}
+	],
+
+	// --- Database ---
+	// Create with: npx wrangler d1 create cmsc-platform-db
+	// Then replace database_id below with the id it prints.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "cmsc-platform-db",
+			"database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+			"migrations_dir": "drizzle"
+		}
+	],
+
+	// --- File storage (sighting-report photos, documents, media) ---
+	// Create with: npx wrangler r2 bucket create cmsc-platform-uploads
+	"r2_buckets": [
+		{
+			"binding": "UPLOADS",
+			"bucket_name": "cmsc-platform-uploads"
+		},
+		{
+			// Used internally by OpenNext for ISR/data cache — not app file storage.
+			// Create with: npx wrangler r2 bucket create cmsc-platform-opennext-cache
+			"binding": "NEXT_INC_CACHE_R2_BUCKET",
+			"bucket_name": "cmsc-platform-opennext-cache"
+		}
+	],
+
+	"images": {
+		"binding": "IMAGES"
+	},
+
+	// Non-secret configuration. Secrets (RESEND_API_KEY, SESSION_SECRET) are set
+	// separately with `wrangler secret put <NAME>` — see DEPLOY.md.
+	"vars": {
+		"SITE_URL": "http://localhost:8787",
+		"RESEND_FROM_EMAIL": "Central Moon Sighting Committee <onboarding@resend.dev>"
+	}
+}
