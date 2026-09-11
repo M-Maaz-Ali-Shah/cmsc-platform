@@ -1,12 +1,21 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 import { getDb, getCf, schema } from "@/db/client";
+import { requireUser } from "@/lib/auth/dal";
 import { generateRandomToken, hashToken } from "@/lib/auth/password";
 import { checkRateLimitByIp } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email/resend";
 import { NewsletterSchema, type NewsletterFormState } from "@/lib/validation/contact";
+
+const MANAGER_ROLES = ["super_admin", "committee_admin"] as const;
+
+async function logAudit(actorName: string, action: string, target: string) {
+  const db = await getDb();
+  await db.insert(schema.auditLogs).values({ id: crypto.randomUUID(), actorName, action, target });
+}
 
 const CONFIRM_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -124,4 +133,17 @@ export async function unsubscribeNewsletter(token: string): Promise<UnsubscribeF
 
   await db.delete(schema.subscribers).where(eq(schema.subscribers.id, row.id));
   return { success: true };
+}
+
+/** Admin-initiated removal — e.g. a bounce complaint or a manual request by phone/email. */
+export async function deleteSubscriber(id: string) {
+  const user = await requireUser([...MANAGER_ROLES]);
+  const db = await getDb();
+  const rows = await db.select({ email: schema.subscribers.email }).from(schema.subscribers).where(eq(schema.subscribers.id, id)).limit(1);
+  const row = rows[0];
+  if (!row) return;
+
+  await db.delete(schema.subscribers).where(eq(schema.subscribers.id, id));
+  await logAudit(user.name, "removed the newsletter subscriber:", row.email);
+  revalidatePath("/admin/dashboard/subscribers");
 }

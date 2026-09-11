@@ -1,14 +1,28 @@
-import { desc } from "drizzle-orm";
+import { count, desc } from "drizzle-orm";
 import { ShieldCheck } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
+import { Pagination, parsePageParam } from "@/components/admin/pagination";
 import { getDb, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
 
-export default async function AdminAuditLogsPage() {
+const PAGE_SIZE = 25;
+
+export default async function AdminAuditLogsPage({ searchParams }: PageProps<"/admin/dashboard/audit-logs">) {
   await requireUser();
+  const params = await searchParams;
+  const page = parsePageParam(params.page);
+
   const db = await getDb();
-  const auditLogs = await db.select().from(schema.auditLogs).orderBy(desc(schema.auditLogs.createdAt)).limit(200);
+  const [auditLogs, [{ value: total }]] = await Promise.all([
+    db
+      .select()
+      .from(schema.auditLogs)
+      .orderBy(desc(schema.auditLogs.createdAt))
+      .limit(PAGE_SIZE)
+      .offset((page - 1) * PAGE_SIZE),
+    db.select({ value: count() }).from(schema.auditLogs),
+  ]);
 
   return (
     <div>
@@ -47,6 +61,7 @@ export default async function AdminAuditLogsPage() {
             )}
           </tbody>
         </table>
+        <Pagination page={page} pageSize={PAGE_SIZE} total={total} basePath="/admin/dashboard/audit-logs" />
       </Card>
     </div>
   );

@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldCheck,
   MessageSquare,
+  Mail,
 } from "lucide-react";
 
 export interface AdminNavItem {
@@ -26,7 +27,7 @@ export interface AdminNavItem {
 export const adminNav: AdminNavItem[] = [
   { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Announcements", href: "/admin/dashboard/announcements", icon: Megaphone },
-  { label: "Sighting Reports", href: "/admin/dashboard/reports", icon: FileSearch, badge: 9 },
+  { label: "Sighting Reports", href: "/admin/dashboard/reports", icon: FileSearch },
   { label: "Observers", href: "/admin/dashboard/observers", icon: Users },
   { label: "Committee Members", href: "/admin/dashboard/committee", icon: UserRound },
   { label: "Regional Representatives", href: "/admin/dashboard/regions", icon: MapPinned },
@@ -35,6 +36,7 @@ export const adminNav: AdminNavItem[] = [
   { label: "Media", href: "/admin/dashboard/media", icon: ImageIcon },
   { label: "Website Content", href: "/admin/dashboard/content", icon: FileCode2 },
   { label: "Contact Messages", href: "/admin/dashboard/contact-messages", icon: MessageSquare },
+  { label: "Subscribers", href: "/admin/dashboard/subscribers", icon: Mail },
   { label: "Notifications", href: "/admin/dashboard/notifications", icon: BellRing },
   { label: "Settings", href: "/admin/dashboard/settings", icon: Settings },
   { label: "Audit Logs", href: "/admin/dashboard/audit-logs", icon: ShieldCheck },

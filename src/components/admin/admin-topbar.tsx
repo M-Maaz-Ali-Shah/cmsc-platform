@@ -11,9 +11,11 @@ import { adminNav } from "@/lib/admin-nav";
 export function AdminTopbar({
   userName,
   userRoleLabel,
+  pendingReportsCount = 0,
 }: {
   userName: string;
   userRoleLabel: string;
+  pendingReportsCount?: number;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -36,7 +38,7 @@ export function AdminTopbar({
           </SheetTrigger>
           <SheetContent className="max-w-xs bg-navy-950 p-0">
             <SheetTitle className="sr-only">Admin navigation</SheetTitle>
-            <AdminSidebar onNavigate={() => setOpen(false)} />
+            <AdminSidebar onNavigate={() => setOpen(false)} pendingReportsCount={pendingReportsCount} />
           </SheetContent>
         </Sheet>
         <h1 className="font-heading text-lg font-bold text-navy-900">{title}</h1>

@@ -3,12 +3,20 @@ import { desc, inArray } from "drizzle-orm";
 import { ReportsTable } from "@/components/admin/reports-table";
 import { getDb, schema } from "@/db/client";
 
+// ReportsTable does its own client-side search + status filtering across
+// whatever it's given, so this can't switch to server-side offset
+// pagination without either breaking that filtering or duplicating it
+// server-side. A generous bound (not "no limit at all") is the pragmatic
+// middle ground here.
+const MAX_REPORTS_ROWS = 500;
+
 export default async function AdminReportsPage() {
   const db = await getDb();
   const reports = await db
     .select()
     .from(schema.sightingReports)
-    .orderBy(desc(schema.sightingReports.submittedAt));
+    .orderBy(desc(schema.sightingReports.submittedAt))
+    .limit(MAX_REPORTS_ROWS);
 
   const reviewerIds = [...new Set(reports.map((r) => r.reviewerId).filter((id): id is string => !!id))];
   const reviewerNames: Record<string, string> = {};

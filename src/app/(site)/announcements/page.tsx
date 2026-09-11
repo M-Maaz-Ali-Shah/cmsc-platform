@@ -16,13 +16,23 @@ export const metadata: Metadata = {
     "Search and browse official moon-sighting announcements published by the Central Moon Sighting Committee GB & EU.",
 };
 
+// ArchiveBrowser does its own client-side search/month/year/type filtering
+// and its own "load more" pagination over whatever it's given, so this
+// can't switch to server-side offset pagination without either breaking
+// that filtering or duplicating it server-side. A committee publishes at
+// most a few dozen announcements a year, so a generous bound (not "no
+// limit at all") is the pragmatic middle ground — comfortably covers
+// decades of history while still not being truly unbounded.
+const MAX_ARCHIVE_ROWS = 500;
+
 export default async function AnnouncementsPage() {
   const db = await getDb();
   const announcements = await db
     .select()
     .from(schema.announcements)
     .where(eq(schema.announcements.status, "Published"))
-    .orderBy(desc(schema.announcements.publishedAt));
+    .orderBy(desc(schema.announcements.publishedAt))
+    .limit(MAX_ARCHIVE_ROWS);
 
   return (
     <>

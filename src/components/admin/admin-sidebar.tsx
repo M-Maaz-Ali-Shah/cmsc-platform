@@ -9,7 +9,13 @@ import { adminNav } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 
-export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function AdminSidebar({
+  onNavigate,
+  pendingReportsCount = 0,
+}: {
+  onNavigate?: () => void;
+  pendingReportsCount?: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -25,6 +31,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4" aria-label="Admin">
         {adminNav.map((item) => {
           const active = pathname === item.href;
+          const badge = item.href === "/admin/dashboard/reports" ? pendingReportsCount : item.badge;
           return (
             <Link
               key={item.href}
@@ -41,9 +48,9 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <item.icon className="size-4" aria-hidden />
                 {item.label}
               </span>
-              {item.badge ? (
+              {badge ? (
                 <span className="rounded-full bg-gold-500 px-1.5 py-0.5 text-[10px] font-bold text-navy-950">
-                  {item.badge}
+                  {badge}
                 </span>
               ) : null}
             </Link>
