@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Install, typecheck, lint, build, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build (next build)
+        run: npm run build
+
+      - name: Build for Cloudflare Workers (opennextjs-cloudflare)
+        run: npm run cf:build
+
+      # A throwaway local D1/R2 for this run only — never touches any
+      # real Cloudflare account. See TESTING.md for the same setup done
+      # by hand during development.
+      - name: Apply D1 migrations (local, ephemeral)
+        run: npx wrangler d1 migrations apply cmsc-platform-db --local
+
+      - name: Write ephemeral test secrets
+        run: |
+          cat > .dev.vars <<EOF
+          SESSION_SECRET=ci-test-session-secret-not-a-real-secret
+          ADMIN_SETUP_TOKEN=ci-test-setup-token-not-a-real-secret
+          RESEND_API_KEY=
+          EOF
+
+      - name: Start the app under wrangler dev
+        run: nohup npx wrangler dev --port 8788 > wrangler-dev.log 2>&1 &
+
+      - name: Wait for the server to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8788/ -o /dev/null; then
+              echo "Server is up."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server did not become ready in time." >&2
+          cat wrangler-dev.log
+          exit 1
+
+      # No `playwright install` step — playwright.config.ts uses
+      # channel: "chrome" (see TESTING.md for why), and GitHub's
+      # ubuntu-latest runner image already ships Google Chrome.
+      - name: Run the Playwright suite
+        run: npx playwright test
+        env:
+          TEST_ADMIN_EMAIL: ci-admin@example.test
+          TEST_ADMIN_PASSWORD: CiTestPassword123!
+          ADMIN_SETUP_TOKEN: ci-test-setup-token-not-a-real-secret
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Print wrangler dev log on failure
+        if: failure()
+        run: cat wrangler-dev.log
+
+  # Optional: deploy to Cloudflare from GitHub Actions on every push to
+  # main, once required checks pass. This is an ALTERNATIVE to
+  # Cloudflare's own GitHub integration (documented in DEPLOY.md) — set
+  # up only one of the two, never both, or you'll get duplicate deploys
+  # racing each other. Inert until CLOUDFLARE_API_TOKEN and
+  # CLOUDFLARE_ACCOUNT_ID repository secrets are added; see DEPLOY.md.
+  deploy:
+    name: Deploy to Cloudflare
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_ACTIONS_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build and deploy
+        run: npm run cf:deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

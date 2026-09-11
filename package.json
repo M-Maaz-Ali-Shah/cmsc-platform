@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply cmsc-platform-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply cmsc-platform-db --remote",
