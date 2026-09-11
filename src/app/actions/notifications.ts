@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 
 import { getDb, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";

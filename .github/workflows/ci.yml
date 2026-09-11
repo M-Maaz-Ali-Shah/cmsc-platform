@@ -30,18 +30,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Production build (next build)
-        run: npm run build
-
-      - name: Build for Cloudflare Workers (opennextjs-cloudflare)
-        run: npm run cf:build
-
-      # A throwaway local D1/R2 for this run only — never touches any
-      # real Cloudflare account. See TESTING.md for the same setup done
-      # by hand during development.
-      - name: Apply D1 migrations (local, ephemeral)
-        run: npx wrangler d1 migrations apply cmsc-platform-db --local
-
       - name: Write ephemeral test secrets
         run: |
           cat > .dev.vars <<EOF
@@ -49,6 +37,32 @@ jobs:
           ADMIN_SETUP_TOKEN=ci-test-setup-token-not-a-real-secret
           RESEND_API_KEY=
           EOF
+
+      # A throwaway local D1/R2 for this run only — never touches any
+      # real Cloudflare account. See TESTING.md for the same setup done
+      # by hand during development.
+      #
+      # Must run BEFORE the build steps below, not after: `next build`
+      # statically prerenders pages (e.g. /how-moon-sighting-works) whose
+      # shared site-footer queries D1 at build time, via the same local
+      # Miniflare-backed D1 state `wrangler d1 migrations ... --local`
+      # writes to (see next.config.ts's initOpenNextCloudflareForDev()).
+      # On a clean checkout there's no prior local D1 state, so building
+      # before migrations are applied fails with "no such table" — this
+      # was caught by the first real run of this workflow on GitHub
+      # Actions (this environment couldn't trigger an actual run, only
+      # reason about the YAML) and is exactly the kind of clean-checkout
+      # gap local iteration alone couldn't have caught, since every local
+      # run reused already-migrated `.wrangler` state left over from
+      # manual testing.
+      - name: Apply D1 migrations (local, ephemeral)
+        run: npx wrangler d1 migrations apply cmsc-platform-db --local
+
+      - name: Production build (next build)
+        run: npm run build
+
+      - name: Build for Cloudflare Workers (opennextjs-cloudflare)
+        run: npm run cf:build
 
       - name: Start the app under wrangler dev
         run: nohup npx wrangler dev --port 8788 > wrangler-dev.log 2>&1 &

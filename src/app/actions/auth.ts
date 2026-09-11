@@ -25,11 +25,11 @@ async function logAudit(actorName: string, action: string, target: string) {
 }
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
-// Always the same message whether or not the email matches an account, and
-// whether the reset request succeeded internally — never reveal account
-// existence. See requestPasswordReset() below.
-const RESET_REQUESTED_MESSAGE =
-  "If an account exists with that email address, a password reset link has been sent.";
+// The "reset requested" message is static and owned by the client
+// component (forgot-password-form.tsx) — requestPasswordReset() below
+// only ever returns `{ success: true }` (never a dynamic message), on
+// purpose: always the same response whether or not the email matches an
+// account, so as to never reveal account existence either way.
 const RESET_INVALID_MESSAGE = "This reset link is invalid or has expired. Request a new one.";
 
 // Generic message on purpose — never reveal whether the email exists.
