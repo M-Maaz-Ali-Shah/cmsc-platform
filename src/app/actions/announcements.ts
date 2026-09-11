@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { AnnouncementSchema, type AnnouncementFormState } from "@/lib/validation/announcement";
 import { ANNOUNCEMENT_STAGES, type AnnouncementStage } from "@/lib/types/announcements";
 import { sendBulkEmail } from "@/lib/email/resend";
+import { isNotificationEnabled, logBulkNotification } from "@/app/actions/notifications";
 
 const EDITOR_ROLES = ["super_admin", "committee_admin"] as const;
 
@@ -122,7 +123,8 @@ export async function advanceAnnouncementStatus(id: string) {
 
   if (isPublishing) {
     const subscribers = await db.select({ email: schema.subscribers.email }).from(schema.subscribers);
-    if (subscribers.length > 0) {
+    const notifyEnabled = await isNotificationEnabled("announcement_published");
+    if (subscribers.length > 0 && notifyEnabled) {
       const { sent, failed } = await sendBulkEmail({
         recipients: subscribers.map((s) => s.email),
         subject: `${announcement.decision}`,
@@ -141,6 +143,22 @@ export async function advanceAnnouncementStatus(id: string) {
         `sent publish notification email (${sent} sent, ${failed} failed) for`,
         `${announcement.month} ${announcement.hijriYear}`
       );
+      await logBulkNotification({
+        type: "announcement_published",
+        recipientSummary: `${subscribers.length} subscriber(s)`,
+        sent,
+        failed,
+        relatedEntity: `${announcement.month} ${announcement.hijriYear}`,
+      });
+    } else if (subscribers.length > 0 && !notifyEnabled) {
+      await logBulkNotification({
+        type: "announcement_published",
+        recipientSummary: `${subscribers.length} subscriber(s)`,
+        sent: 0,
+        failed: 0,
+        relatedEntity: `${announcement.month} ${announcement.hijriYear}`,
+        skipped: true,
+      });
     }
   }
 

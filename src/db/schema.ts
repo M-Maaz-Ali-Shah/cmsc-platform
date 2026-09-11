@@ -233,6 +233,23 @@ export const contentBlocks = sqliteTable("content_blocks", {
   publishedAt: integer("published_at", { mode: "timestamp" }),
 });
 
+// ---------- Notifications ----------
+// Settings (email master switch, per-type toggles) reuse website_settings
+// (key-value) with a "notify_" key prefix — no need for a dedicated table.
+// This table is just the delivery history/log.
+export const notificationLog = sqliteTable("notification_log", {
+  id: text("id").primaryKey(),
+  type: text("type").notNull(), // e.g. "sighting_new", "sighting_status", "reviewer_assigned", "announcement_published", "contact_new", "team_created"
+  recipient: text("recipient").notNull(), // email address only — never store message content here
+  status: text("status").notNull(), // "sent" | "failed" | "skipped" (skipped = notification type disabled)
+  relatedEntity: text("related_entity"), // e.g. a report ref or announcement slug, for admin reference
+  failureReason: text("failure_reason"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  sentAt: integer("sent_at", { mode: "timestamp" }),
+});
+
 // ---------- Rate limiting ----------
 // D1-backed (not the Cloudflare Workers "ratelimits" binding — see the note
 // in wrangler.jsonc for why). Fixed-window counter per key, e.g.

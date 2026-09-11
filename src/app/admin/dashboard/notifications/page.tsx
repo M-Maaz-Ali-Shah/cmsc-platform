@@ -1,17 +1,16 @@
-import { BellRing } from "lucide-react";
-import { SectionPlaceholder } from "@/components/admin/section-placeholder";
+import { NotificationsManager } from "@/components/admin/notifications-manager";
+import { getNotificationSettings, listNotificationLog } from "@/app/actions/notifications";
+import { requireUser } from "@/lib/auth/dal";
 
-export default function AdminNotificationsPage() {
+export default async function AdminNotificationsPage() {
+  const user = await requireUser();
+  const [settings, log] = await Promise.all([getNotificationSettings(), listNotificationLog(50)]);
+
   return (
-    <SectionPlaceholder
-      icon={BellRing}
-      title="Notifications"
-      description="Control what happens automatically when an announcement is published — email alerts, browser notifications, and social sharing."
-      bullets={[
-        "Toggle email notifications for subscribers",
-        "Toggle browser push notifications",
-        "Generate ready-to-post social media copy",
-      ]}
+    <NotificationsManager
+      settings={settings}
+      log={log}
+      canEdit={["super_admin", "committee_admin"].includes(user.role)}
     />
   );
 }

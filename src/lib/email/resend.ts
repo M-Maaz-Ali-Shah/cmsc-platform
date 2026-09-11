@@ -17,6 +17,37 @@ export async function getResendClient(): Promise<{ client: Resend; from: string 
   return { client: new Resend(apiKey), from };
 }
 
+/**
+ * Sends a single email. Best-effort like sendBulkEmail — never throws,
+ * returns whether it actually sent so callers can log/branch on it.
+ */
+export async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const resend = await getResendClient();
+  if (!resend) {
+    return { ok: false, error: "RESEND_API_KEY not configured" };
+  }
+  try {
+    const { error } = await resend.client.emails.send({ from: resend.from, to, subject, html });
+    if (error) {
+      console.error("[email] send failed:", error);
+      return { ok: false, error: error.message ?? "Unknown error" };
+    }
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[email] send threw:", err);
+    return { ok: false, error: message };
+  }
+}
+
 const BATCH_SIZE = 100; // Resend's batch send API accepts up to 100 emails per call.
 
 /**

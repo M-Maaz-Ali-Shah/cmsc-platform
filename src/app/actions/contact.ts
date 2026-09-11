@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { getDb, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
 import { checkRateLimitByIp, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
+import { sendNotification } from "@/app/actions/notifications";
+import { getSettings } from "@/app/actions/settings";
 import { ContactSchema, NewsletterSchema, type ContactFormState, type NewsletterFormState } from "@/lib/validation/contact";
 
 export async function submitContactMessage(
@@ -38,6 +40,16 @@ export async function submitContactMessage(
   });
 
   revalidatePath("/admin/dashboard/contact-messages");
+
+  const settings = await getSettings();
+  await sendNotification({
+    type: "contact_new",
+    recipient: settings.supportEmail || null,
+    subject: `New contact message: ${data.subject}`,
+    html: `<p>New message from ${data.name} (${data.email.toLowerCase().trim()}):</p><p>${data.subject}</p><p>Read the full message in the admin dashboard.</p>`,
+    relatedEntity: data.subject,
+  });
+
   return { success: true };
 }
 

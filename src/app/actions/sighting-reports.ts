@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { getDb, getCf, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
 import { checkRateLimitByIp, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
+import { sendNotification } from "@/app/actions/notifications";
+import { getSettings } from "@/app/actions/settings";
 import {
   SightingReportSchema,
   MAX_UPLOAD_BYTES,
@@ -147,6 +149,15 @@ export async function submitSightingReport(
   revalidatePath("/admin/dashboard/reports");
   revalidatePath("/admin/dashboard");
 
+  const settings = await getSettings();
+  await sendNotification({
+    type: "sighting_new",
+    recipient: settings.supportEmail || null,
+    subject: `New sighting report — ${reportRef}`,
+    html: `<p>A new sighting report (${reportRef}) was submitted from ${data.city}, ${data.country}.</p><p>Review it in the admin dashboard.</p>`,
+    relatedEntity: reportRef,
+  });
+
   return { success: true, reportRef };
 }
 
@@ -169,12 +180,26 @@ export async function updateReportStatus(reportRef: string, status: ReportStatus
   }
 
   const db = await getDb();
+  const rows = await db
+    .select({ email: schema.sightingReports.email })
+    .from(schema.sightingReports)
+    .where(eq(schema.sightingReports.reportRef, reportRef))
+    .limit(1);
+
   await db
     .update(schema.sightingReports)
     .set({ status, updatedAt: new Date() })
     .where(eq(schema.sightingReports.reportRef, reportRef));
 
   await logAudit(user.name, `changed report status to "${status}" for`, reportRef);
+
+  await sendNotification({
+    type: "sighting_status",
+    recipient: rows[0]?.email ?? null,
+    subject: `Update on your sighting report ${reportRef}`,
+    html: `<p>The status of your sighting report (${reportRef}) has changed to: <strong>${status}</strong>.</p>`,
+    relatedEntity: reportRef,
+  });
 
   revalidatePath(`/admin/dashboard/reports/${reportRef}`);
   revalidatePath("/admin/dashboard/reports");
@@ -189,6 +214,21 @@ export async function assignReviewer(reportRef: string, reviewerId: string | nul
     .update(schema.sightingReports)
     .set({ reviewerId, updatedAt: new Date() })
     .where(eq(schema.sightingReports.reportRef, reportRef));
+
+  if (reviewerId) {
+    const reviewerRows = await db
+      .select({ email: schema.users.email })
+      .from(schema.users)
+      .where(eq(schema.users.id, reviewerId))
+      .limit(1);
+    await sendNotification({
+      type: "reviewer_assigned",
+      recipient: reviewerRows[0]?.email ?? null,
+      subject: `You've been assigned to review report ${reportRef}`,
+      html: `<p>You have been assigned as reviewer for sighting report ${reportRef}. Sign in to the admin dashboard to review it.</p>`,
+      relatedEntity: reportRef,
+    });
+  }
 
   await logAudit(
     user.name,

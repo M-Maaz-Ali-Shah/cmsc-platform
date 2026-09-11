@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getDb, schema } from "@/db/client";
 import { requireUser } from "@/lib/auth/dal";
 import { hashPassword, generateRandomToken } from "@/lib/auth/password";
+import { sendNotification } from "@/app/actions/notifications";
 import { CreateTeamAccountSchema, type CreateTeamAccountState } from "@/lib/validation/team";
 
 const MANAGER_ROLES = ["super_admin", "committee_admin"] as const;
@@ -63,6 +64,17 @@ export async function createTeamAccount(
   });
 
   await logAudit(user.name, `created a ${data.role.replace("_", " ")} account for`, `${data.name} (${email})`);
+
+  // Informational only — never emails the temporary password itself. The
+  // admin who created the account relays it out of band (see the one-time
+  // UI reveal above).
+  await sendNotification({
+    type: "team_created",
+    recipient: email,
+    subject: "Your Central Moon Sighting Committee account has been created",
+    html: `<p>Hi ${data.name},</p><p>An administrator has created a dashboard account for you at the Central Moon Sighting Committee GB & EU. Contact them directly for your sign-in details.</p>`,
+    relatedEntity: data.name,
+  });
 
   revalidatePath("/admin/dashboard/regions");
   revalidatePath("/admin/dashboard/observers");
