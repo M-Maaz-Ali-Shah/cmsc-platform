@@ -5,7 +5,7 @@ import { BellRing, CheckCircle2 } from "lucide-react";
 
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { subscribeNewsletter } from "@/app/actions/contact";
+import { subscribeNewsletter } from "@/app/actions/newsletter";
 import type { NewsletterFormState } from "@/lib/validation/contact";
 
 const initialState: NewsletterFormState = undefined;
@@ -33,7 +33,7 @@ export function Newsletter() {
           {state?.success ? (
             <p className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
               <CheckCircle2 className="size-4" aria-hidden />
-              You&rsquo;re subscribed — thank you.
+              Almost there — check your inbox to confirm your subscription.
             </p>
           ) : (
             <form action={formAction} className="flex w-full max-w-md flex-col gap-3 sm:flex-row">

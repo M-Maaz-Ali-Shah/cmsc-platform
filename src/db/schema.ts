@@ -187,6 +187,20 @@ export const media = sqliteTable("media", {
 export const subscribers = sqliteTable("subscribers", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
+  // Defaults true so the ALTER TABLE backfill grandfathers every existing
+  // subscriber as already-confirmed — double opt-in only applies to new
+  // signups going forward (subscribeNewsletter() explicitly inserts
+  // false), never retroactively unsubscribing someone already on the list.
+  confirmed: integer("confirmed", { mode: "boolean" }).notNull().default(true),
+  confirmTokenHash: text("confirm_token_hash"), // hashed like password-reset tokens — one-time, short-lived
+  confirmExpiresAt: integer("confirm_expires_at", { mode: "timestamp" }),
+  // Raw (not hashed) and stable for the life of the subscription — an
+  // unsubscribe link has to keep working across every future announcement
+  // email, unlike a one-time confirm/reset token. Low-stakes if it ever
+  // leaked (worst case, someone unsubscribes a stranger), so this doesn't
+  // need reset-token-grade secrecy. Lazily backfilled for any legacy row
+  // that predates this column, the first time it's needed.
+  unsubscribeToken: text("unsubscribe_token"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

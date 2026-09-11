@@ -36,6 +36,13 @@
       "when": 1789118603800,
       "tag": "0004_jittery_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789120628595,
+      "tag": "0005_wakeful_rhino",
+      "breakpoints": true
     }
   ]
 }

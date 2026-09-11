@@ -8,7 +8,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { checkRateLimitByIp, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import { sendNotification } from "@/app/actions/notifications";
 import { getSettings } from "@/app/actions/settings";
-import { ContactSchema, NewsletterSchema, type ContactFormState, type NewsletterFormState } from "@/lib/validation/contact";
+import { ContactSchema, type ContactFormState } from "@/lib/validation/contact";
 
 export async function submitContactMessage(
   _prevState: ContactFormState,
@@ -49,34 +49,6 @@ export async function submitContactMessage(
     html: `<p>New message from ${data.name} (${data.email.toLowerCase().trim()}):</p><p>${data.subject}</p><p>Read the full message in the admin dashboard.</p>`,
     relatedEntity: data.subject,
   });
-
-  return { success: true };
-}
-
-export async function subscribeNewsletter(
-  _prevState: NewsletterFormState,
-  formData: FormData
-): Promise<NewsletterFormState> {
-  if (formData.get("website")) {
-    return { error: "Submission could not be processed." };
-  }
-
-  const { allowed } = await checkRateLimitByIp("forms", "newsletter");
-  if (!allowed) {
-    return { error: RATE_LIMIT_MESSAGE };
-  }
-
-  const parsed = NewsletterSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Enter a valid email address." };
-  }
-  const email = parsed.data.email.toLowerCase().trim();
-
-  const db = await getDb();
-  const existing = await db.select({ id: schema.subscribers.id }).from(schema.subscribers).where(eq(schema.subscribers.email, email)).limit(1);
-  if (existing.length === 0) {
-    await db.insert(schema.subscribers).values({ id: crypto.randomUUID(), email });
-  }
 
   return { success: true };
 }

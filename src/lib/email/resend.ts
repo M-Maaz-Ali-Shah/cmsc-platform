@@ -51,10 +51,13 @@ export async function sendEmail({
 const BATCH_SIZE = 100; // Resend's batch send API accepts up to 100 emails per call.
 
 /**
- * Sends the same subject/html to every address in `recipients`, chunked
- * into batches. Best-effort: logs and continues on a failed batch rather
- * than throwing, since a notification failure should never roll back a
- * publish/approval action.
+ * Sends `subject` to every recipient, chunked into batches of up to 100
+ * (Resend's batch send limit). Each recipient gets its own `html` — a
+ * flat string shared by everyone, or a function to build personalized
+ * content per address (e.g. a per-subscriber unsubscribe link). Best-
+ * effort: logs and continues on a failed batch rather than throwing,
+ * since a notification failure should never roll back a publish/approval
+ * action.
  */
 export async function sendBulkEmail({
   recipients,
@@ -63,7 +66,7 @@ export async function sendBulkEmail({
 }: {
   recipients: string[];
   subject: string;
-  html: string;
+  html: string | ((to: string) => string);
 }): Promise<{ sent: number; failed: number }> {
   if (recipients.length === 0) return { sent: 0, failed: 0 };
 
@@ -73,6 +76,7 @@ export async function sendBulkEmail({
     return { sent: 0, failed: recipients.length };
   }
 
+  const buildHtml = typeof html === "function" ? html : () => html;
   let sent = 0;
   let failed = 0;
 
@@ -80,7 +84,7 @@ export async function sendBulkEmail({
     const chunk = recipients.slice(i, i + BATCH_SIZE);
     try {
       const { error } = await resend.client.batch.send(
-        chunk.map((to) => ({ from: resend.from, to, subject, html }))
+        chunk.map((to) => ({ from: resend.from, to, subject, html: buildHtml(to) }))
       );
       if (error) {
         failed += chunk.length;

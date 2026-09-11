@@ -9,6 +9,7 @@ import { AnnouncementSchema, type AnnouncementFormState } from "@/lib/validation
 import { ANNOUNCEMENT_STAGES, type AnnouncementStage } from "@/lib/types/announcements";
 import { sendBulkEmail } from "@/lib/email/resend";
 import { isNotificationEnabled, logBulkNotification } from "@/app/actions/notifications";
+import { generateRandomToken } from "@/lib/auth/password";
 
 const EDITOR_ROLES = ["super_admin", "committee_admin"] as const;
 
@@ -122,19 +123,39 @@ export async function advanceAnnouncementStatus(id: string) {
   await logAudit(user.name, `moved announcement to "${nextStage}":`, `${announcement.month} ${announcement.hijriYear}`);
 
   if (isPublishing) {
-    const subscribers = await db.select({ email: schema.subscribers.email }).from(schema.subscribers);
+    // Only double-opted-in subscribers — see src/app/actions/newsletter.ts.
+    const subscribers = await db
+      .select({ id: schema.subscribers.id, email: schema.subscribers.email, unsubscribeToken: schema.subscribers.unsubscribeToken })
+      .from(schema.subscribers)
+      .where(eq(schema.subscribers.confirmed, true));
     const notifyEnabled = await isNotificationEnabled("announcement_published");
     if (subscribers.length > 0 && notifyEnabled) {
+      // Lazily backfill an unsubscribe token for any legacy row that
+      // predates the double-opt-in columns, so every email — old
+      // subscriber or new — gets a working unsubscribe link.
+      const tokensByEmail = new Map<string, string>();
+      for (const s of subscribers) {
+        if (s.unsubscribeToken) {
+          tokensByEmail.set(s.email, s.unsubscribeToken);
+        } else {
+          const newToken = generateRandomToken(16);
+          await db.update(schema.subscribers).set({ unsubscribeToken: newToken }).where(eq(schema.subscribers.id, s.id));
+          tokensByEmail.set(s.email, newToken);
+        }
+      }
+
+      const siteUrl = (await getCf()).env.SITE_URL;
       const { sent, failed } = await sendBulkEmail({
         recipients: subscribers.map((s) => s.email),
         subject: `${announcement.decision}`,
-        html: `
+        html: (to) => `
           <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
             <p style="text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: #0f6b4a;">Official Statement &middot; ${announcement.type}</p>
             <h1 style="font-size: 20px; color: #0b1f3a;">${announcement.decision}</h1>
             <p style="font-size: 15px; line-height: 1.6; color: #1f2937;">${announcement.summary}</p>
             <p style="font-size: 13px; color: #6b7280;">Region: ${announcement.region}</p>
-            <p style="margin-top: 24px;"><a href="${(await getCf()).env.SITE_URL}/announcements/${announcement.slug}" style="color: #0b1f3a; font-weight: 600;">Read the full announcement →</a></p>
+            <p style="margin-top: 24px;"><a href="${siteUrl}/announcements/${announcement.slug}" style="color: #0b1f3a; font-weight: 600;">Read the full announcement →</a></p>
+            <p style="margin-top: 24px; font-size: 11px; color: #9ca3af;"><a href="${siteUrl}/newsletter/unsubscribe?token=${tokensByEmail.get(to)}" style="color: #9ca3af;">Unsubscribe</a> from these emails.</p>
           </div>
         `,
       });
