@@ -20,7 +20,7 @@ import type { ReportStatus } from "@/lib/types/reports";
 
 export default async function AdminOverviewPage() {
   const db = await getDb();
-  const [sightingReports, auditLogsRows, latestAnnouncement, regions, reportStats, observerTotal] =
+  const [sightingReports, auditLogsRows, latestAnnouncement, regions, reportStats, observerTotal, calendarRows] =
     await Promise.all([
       db.select().from(schema.sightingReports).orderBy(desc(schema.sightingReports.submittedAt)),
       db.select().from(schema.auditLogs).orderBy(desc(schema.auditLogs.createdAt)).limit(5),
@@ -36,8 +36,10 @@ export default async function AdminOverviewPage() {
         .from(schema.sightingReports)
         .groupBy(schema.sightingReports.region),
       db.select({ value: countDistinct(schema.sightingReports.email) }).from(schema.sightingReports),
+      db.select().from(schema.calendarEntries).orderBy(asc(schema.calendarEntries.sortOrder)),
     ]);
   const latest = latestAnnouncement[0];
+  const upcomingCycle = calendarRows.find((r) => r.officialStatus === "Under Review") ?? null;
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
@@ -67,7 +69,12 @@ export default async function AdminOverviewPage() {
         <StatTile icon={FileSearch} label="Under Review" value={String(underReview.length)} />
         <StatTile icon={CheckCircle2} label="Confirmed Reports" value={String(confirmed.length)} />
         <StatTile icon={Users} label="Observers to Date" value={String(totalObservers)} />
-        <StatTile icon={CalendarClock} label="Upcoming Sighting" value="27 Aug" hint="2026, after Maghrib" />
+        <StatTile
+          icon={CalendarClock}
+          label="Upcoming Sighting"
+          value={upcomingCycle?.astronomicalEstimate ?? "Not scheduled"}
+          hint={upcomingCycle ? `${upcomingCycle.hijriMonth} ${upcomingCycle.hijriYear}` : undefined}
+        />
         <StatTile
           icon={Megaphone}
           label="Latest Announcement"

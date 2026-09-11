@@ -4,8 +4,13 @@ import { Download, FileText, MapPin, Clock } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PUBLIC_STATUS_BADGE, type AnnouncementRow, type PublicStatus } from "@/lib/types/announcements";
 
-export function LatestAnnouncement() {
+interface LatestAnnouncementProps {
+  announcement: AnnouncementRow | null;
+}
+
+export function LatestAnnouncement({ announcement }: LatestAnnouncementProps) {
   return (
     <section className="py-16 sm:py-20">
       <Container>
@@ -26,54 +31,64 @@ export function LatestAnnouncement() {
           </Link>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border-subtle bg-navy-950 text-white shadow-xl">
-          <div className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge variant="confirmed">Confirmed</Badge>
-                <span className="text-xs uppercase tracking-wide text-white/50">
-                  Demo content — for design review
-                </span>
+        {!announcement ? (
+          <div className="rounded-2xl border border-dashed border-border-subtle p-10 text-center text-sm text-ink-500">
+            No announcements have been published yet. Check back soon.
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-border-subtle bg-navy-950 text-white shadow-xl">
+            <div className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge variant={PUBLIC_STATUS_BADGE[announcement.publicStatus as PublicStatus]}>
+                    {announcement.publicStatus}
+                  </Badge>
+                </div>
+                <h3 className="mt-4 font-heading text-2xl font-bold sm:text-3xl">
+                  {announcement.decision}
+                </h3>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
+                  {announcement.summary}
+                </p>
+
+                <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/60">
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-4 text-gold-400" aria-hidden />
+                    <span>
+                      Published{" "}
+                      {announcement.publishedAt
+                        ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(
+                            announcement.publishedAt
+                          )
+                        : "date pending"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="size-4 text-gold-400" aria-hidden />
+                    <span>{announcement.region}</span>
+                  </div>
+                </dl>
               </div>
-              <h3 className="mt-4 font-heading text-2xl font-bold sm:text-3xl">
-                Start of Ramadan 1448 AH
-              </h3>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
-                Following verified sighting reports received from across our
-                regional network and review by committee scholars, the
-                Central Moon Sighting Committee GB &amp; EU has confirmed the
-                sighting of the crescent moon marking the beginning of
-                Ramadan.
-              </p>
 
-              <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/60">
-                <div className="flex items-center gap-2">
-                  <Clock className="size-4 text-gold-400" aria-hidden />
-                  <span>Published 19 Aug 2026, 21:40 BST</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="size-4 text-gold-400" aria-hidden />
-                  <span>Great Britain &amp; Europe</span>
-                </div>
-              </dl>
-            </div>
-
-            <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
-              <Button asChild variant="gold" size="lg">
-                <Link href="/announcements/ramadan-1448">
-                  <FileText className="size-4" aria-hidden />
-                  Read Full Announcement
-                </Link>
-              </Button>
-              <Button asChild variant="outlineLight" size="lg">
-                <Link href="/announcements/ramadan-1448.pdf">
-                  <Download className="size-4" aria-hidden />
-                  Download PDF
-                </Link>
-              </Button>
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
+                <Button asChild variant="gold" size="lg">
+                  <Link href={`/announcements/${announcement.slug}`}>
+                    <FileText className="size-4" aria-hidden />
+                    Read Full Announcement
+                  </Link>
+                </Button>
+                {announcement.pdfKey && (
+                  <Button asChild variant="outlineLight" size="lg">
+                    <Link href={`/api/public-files/${announcement.pdfKey}`}>
+                      <Download className="size-4" aria-hidden />
+                      Download PDF
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </Container>
     </section>
   );

@@ -3,8 +3,20 @@ import { Moon, CalendarDays, Telescope } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
+import type { BadgeStatus } from "@/lib/calendar-data";
 
-export function CurrentMonth() {
+interface CurrentMonthProps {
+  current: {
+    hijriMonth: string;
+    hijriYear: string;
+    statusVariant: BadgeStatus;
+    statusLabel: string;
+    estimate: string | null;
+  } | null;
+  upcoming: { hijriMonth: string; hijriYear: string } | null;
+}
+
+export function CurrentMonth({ current, upcoming }: CurrentMonthProps) {
   return (
     <section className="relative -mt-12 sm:-mt-16">
       <Container>
@@ -13,21 +25,22 @@ export function CurrentMonth() {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">
               Current Islamic Month
             </p>
-            <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h2 className="font-heading text-3xl font-bold text-navy-900 sm:text-4xl">
-                Sha&rsquo;ban 1448 AH
+            {current ? (
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h2 className="font-heading text-3xl font-bold text-navy-900 sm:text-4xl">
+                  {current.hijriMonth} {current.hijriYear}
+                </h2>
+                <Badge variant={current.statusVariant}>{current.statusLabel}</Badge>
+              </div>
+            ) : (
+              <h2 className="mt-2 font-heading text-2xl font-bold text-navy-900">
+                No active cycle configured yet
               </h2>
-              <Badge variant="awaiting">Awaiting Sighting</Badge>
-            </div>
-            <p className="mt-3 flex items-center gap-2 text-sm text-ink-500">
-              <CalendarDays className="size-4 text-ink-300" aria-hidden />
-              Gregorian date &mdash;{" "}
-              <span className="font-medium text-ink-700">Thursday, 20 August 2026</span>
-            </p>
+            )}
             <p className="mt-4 max-w-md text-xs leading-relaxed text-ink-500">
-              This is a demonstration status card. Islamic dates shown here are
-              placeholder content and do not represent an official committee
-              decision.
+              This card reflects the current entry on the committee&rsquo;s
+              Islamic calendar and does not itself represent an official
+              religious ruling.
             </p>
           </div>
 
@@ -37,7 +50,7 @@ export function CurrentMonth() {
             <StatCell
               icon={<Moon className="size-4" aria-hidden />}
               label="Next expected sighting"
-              value="27 Aug 2026"
+              value={current?.estimate ?? "Not yet estimated"}
             />
             <StatCell
               icon={<Telescope className="size-4" aria-hidden />}
@@ -47,12 +60,12 @@ export function CurrentMonth() {
             <StatCell
               icon={<CalendarDays className="size-4" aria-hidden />}
               label="Upcoming month"
-              value="Ramadan 1448 AH"
+              value={upcoming ? `${upcoming.hijriMonth} ${upcoming.hijriYear}` : "Not yet configured"}
             />
             <StatCell
               icon={<Moon className="size-4" aria-hidden />}
               label="Status"
-              value="Awaiting Moon Sighting"
+              value={current?.statusLabel ?? "Unconfigured"}
             />
           </dl>
         </Card>

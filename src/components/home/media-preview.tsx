@@ -3,14 +3,11 @@ import { ArrowRight, ImageIcon, PlayCircle } from "lucide-react";
 
 import { Container } from "@/components/ui/container";
 
-const items = [
-  { type: "photo", label: "Moon Sightings" },
-  { type: "video", label: "Committee" },
-  { type: "photo", label: "Events" },
-  { type: "photo", label: "Announcements" },
-];
+interface MediaPreviewProps {
+  items: { id: string; type: string; title: string }[];
+}
 
-export function MediaPreview() {
+export function MediaPreview({ items }: MediaPreviewProps) {
   return (
     <section className="py-16 sm:py-20">
       <Container>
@@ -32,32 +29,38 @@ export function MediaPreview() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {items.map((item, i) => (
-            <Link
-              key={i}
-              href="/media"
-              className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-xl bg-gradient-to-br from-navy-800 to-navy-950 p-4 text-white"
-            >
-              <div
-                className="absolute inset-0 opacity-40 transition-opacity group-hover:opacity-60"
-                style={{
-                  background:
-                    "radial-gradient(200px 120px at 30% 20%, rgba(201,161,58,0.35), transparent 60%)",
-                }}
-                aria-hidden
-              />
-              <div className="relative flex items-center gap-2 text-gold-400">
-                {item.type === "video" ? (
-                  <PlayCircle className="size-5" aria-hidden />
-                ) : (
-                  <ImageIcon className="size-5" aria-hidden />
-                )}
-              </div>
-              <p className="relative mt-2 text-sm font-semibold">{item.label}</p>
-            </Link>
-          ))}
-        </div>
+        {items.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border-subtle p-10 text-center text-sm text-ink-500">
+            No media has been uploaded yet.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {items.map((item) => (
+              <Link
+                key={item.id}
+                href="/media"
+                className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-xl bg-gradient-to-br from-navy-800 to-navy-950 p-4 text-white"
+              >
+                <div
+                  className="absolute inset-0 opacity-40 transition-opacity group-hover:opacity-60"
+                  style={{
+                    background:
+                      "radial-gradient(200px 120px at 30% 20%, rgba(201,161,58,0.35), transparent 60%)",
+                  }}
+                  aria-hidden
+                />
+                <div className="relative flex items-center gap-2 text-gold-400">
+                  {item.type === "video" ? (
+                    <PlayCircle className="size-5" aria-hidden />
+                  ) : (
+                    <ImageIcon className="size-5" aria-hidden />
+                  )}
+                </div>
+                <p className="relative mt-2 text-sm font-semibold">{item.title}</p>
+              </Link>
+            ))}
+          </div>
+        )}
       </Container>
     </section>
   );

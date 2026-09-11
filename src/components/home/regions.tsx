@@ -4,21 +4,11 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 
-const regions = [
-  { name: "England", group: "Great Britain" },
-  { name: "Scotland", group: "Great Britain" },
-  { name: "Wales", group: "Great Britain" },
-  { name: "Ireland", group: "Europe" },
-  { name: "France", group: "Europe" },
-  { name: "Germany", group: "Europe" },
-  { name: "Belgium", group: "Europe" },
-  { name: "Netherlands", group: "Europe" },
-  { name: "Spain", group: "Europe" },
-  { name: "Italy", group: "Europe" },
-  { name: "Austria", group: "Europe" },
-];
+interface RegionsProps {
+  regions: { name: string; group: string }[];
+}
 
-export function Regions() {
+export function Regions({ regions }: RegionsProps) {
   return (
     <section className="py-16 sm:py-20">
       <Container>
@@ -40,30 +30,36 @@ export function Regions() {
           </Link>
         </div>
 
-        <Card className="grid grid-cols-2 gap-px overflow-hidden bg-border-subtle sm:grid-cols-3 lg:grid-cols-4">
-          {regions.map((region) => (
-            <Link
-              key={region.name}
-              href="/regions"
-              className="group flex items-center justify-between gap-2 bg-surface px-5 py-4 transition-colors hover:bg-paper-muted"
-            >
-              <span>
-                <span className="block text-sm font-semibold text-navy-900">
-                  {region.name}
+        {regions.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border-subtle p-10 text-center text-sm text-ink-500">
+            No regions have been configured yet.
+          </p>
+        ) : (
+          <Card className="grid grid-cols-2 gap-px overflow-hidden bg-border-subtle sm:grid-cols-3 lg:grid-cols-4">
+            {regions.map((region) => (
+              <Link
+                key={region.name}
+                href="/regions"
+                className="group flex items-center justify-between gap-2 bg-surface px-5 py-4 transition-colors hover:bg-paper-muted"
+              >
+                <span>
+                  <span className="block text-sm font-semibold text-navy-900">
+                    {region.name}
+                  </span>
+                  <span className="block text-xs text-ink-500">{region.group}</span>
                 </span>
-                <span className="block text-xs text-ink-500">{region.group}</span>
-              </span>
-              <MapPin className="size-4 text-ink-300 group-hover:text-emerald-700" aria-hidden />
+                <MapPin className="size-4 text-ink-300 group-hover:text-emerald-700" aria-hidden />
+              </Link>
+            ))}
+            <Link
+              href="/regions"
+              className="flex items-center justify-center gap-1.5 bg-navy-900 px-5 py-4 text-sm font-semibold text-white hover:bg-navy-800"
+            >
+              View all regions
+              <ArrowRight className="size-4" aria-hidden />
             </Link>
-          ))}
-          <Link
-            href="/regions"
-            className="flex items-center justify-center gap-1.5 bg-navy-900 px-5 py-4 text-sm font-semibold text-white hover:bg-navy-800"
-          >
-            View all regions
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
-        </Card>
+          </Card>
+        )}
       </Container>
     </section>
   );

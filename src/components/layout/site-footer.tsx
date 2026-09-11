@@ -98,7 +98,6 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Central Moon Sighting Committee — Great Britain &amp; Europe.
             All rights reserved.
           </p>
-          <p>Demo content for design review — not an official announcement.</p>
         </div>
       </div>
     </footer>

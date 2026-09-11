@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { countDistinct, inArray } from "drizzle-orm";
 import { Award, Eye, ShieldCheck, Users } from "lucide-react";
 
 import { PageBanner } from "@/components/layout/page-banner";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { regions } from "@/lib/mock-data";
+import { getDb, schema } from "@/db/client";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Observers",
@@ -14,8 +17,22 @@ export const metadata: Metadata = {
     "About the volunteer observer network that supports the Central Moon Sighting Committee GB & EU.",
 };
 
-export default function ObserversPage() {
-  const totalObservers = regions.reduce((sum, r) => sum + r.observers, 0);
+const VERIFIED_STATUSES = ["Accepted", "Included in Decision"];
+
+export default async function ObserversPage() {
+  const db = await getDb();
+  const [observerTotal, regionsRows, verifiedTotal] = await Promise.all([
+    db.select({ value: countDistinct(schema.sightingReports.email) }).from(schema.sightingReports),
+    db.select().from(schema.regions),
+    db
+      .select({ value: countDistinct(schema.sightingReports.email) })
+      .from(schema.sightingReports)
+      .where(inArray(schema.sightingReports.status, VERIFIED_STATUSES)),
+  ]);
+
+  const totalObservers = observerTotal[0]?.value ?? 0;
+  const regionsCovered = regionsRows.length;
+  const verifiedObservers = verifiedTotal[0]?.value ?? 0;
 
   return (
     <>
@@ -33,9 +50,9 @@ export default function ObserversPage() {
       <section className="py-14 sm:py-16">
         <Container>
           <div className="grid gap-5 sm:grid-cols-3">
-            <StatCard icon={Users} label="Registered observers" value={`${totalObservers}+`} />
-            <StatCard icon={ShieldCheck} label="Regions covered" value={`${regions.length}`} />
-            <StatCard icon={Award} label="Verified this cycle" value="9" />
+            <StatCard icon={Users} label="Observers to date" value={`${totalObservers}`} />
+            <StatCard icon={ShieldCheck} label="Regions covered" value={`${regionsCovered}`} />
+            <StatCard icon={Award} label="Verified reports to date" value={`${verifiedObservers}`} />
           </div>
 
           <div className="mt-12 grid gap-8 lg:grid-cols-2">

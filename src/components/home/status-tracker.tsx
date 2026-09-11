@@ -4,14 +4,15 @@ import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const steps = [
-  { label: "Reports Submitted", icon: Send, state: "done" as const },
-  { label: "Under Review", icon: FileSearch, state: "current" as const },
-  { label: "Committee Decision", icon: ScrollText, state: "upcoming" as const },
-  { label: "Announcement Published", icon: ShieldCheck, state: "upcoming" as const },
-];
+const ICONS = [Send, FileSearch, ScrollText, ShieldCheck];
 
-export function StatusTracker() {
+interface StatusTrackerProps {
+  steps: { label: string; count: number }[];
+  upcomingEstimate: string | null;
+  upcomingLabel: string | null;
+}
+
+export function StatusTracker({ steps, upcomingEstimate, upcomingLabel }: StatusTrackerProps) {
   return (
     <section className="border-y border-border-subtle bg-paper-muted py-16 sm:py-20">
       <Container>
@@ -24,51 +25,38 @@ export function StatusTracker() {
               Moon-Sighting Status
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-500">
-              Reports for Ramadan 1448 AH are currently being reviewed by
-              regional representatives. This tracker reflects the committee&rsquo;s
-              process, not a final religious ruling.
+              This tracker reflects the committee&rsquo;s review process to
+              date, not a final religious ruling.
             </p>
 
             <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {steps.map((step, i) => (
-                <li key={step.label}>
-                  <div
-                    className={cn(
-                      "flex h-full flex-col gap-3 rounded-xl border p-4",
-                      step.state === "current"
-                        ? "border-gold-500 bg-gold-50"
-                        : step.state === "done"
-                        ? "border-emerald-700/20 bg-emerald-50"
-                        : "border-border-subtle bg-surface"
-                    )}
-                  >
+              {steps.map((step, i) => {
+                const Icon = ICONS[i] ?? Check;
+                const isFirst = i === 0;
+                return (
+                  <li key={step.label}>
                     <div
                       className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-full",
-                        step.state === "current"
-                          ? "bg-gold-500 text-navy-950"
-                          : step.state === "done"
-                          ? "bg-emerald-700 text-white"
-                          : "bg-paper-muted text-ink-300"
+                        "flex h-full flex-col gap-3 rounded-xl border p-4",
+                        isFirst ? "border-emerald-700/20 bg-emerald-50" : "border-border-subtle bg-surface"
                       )}
                     >
-                      {step.state === "done" ? (
-                        <Check className="size-4" />
-                      ) : (
-                        <step.icon className="size-4" />
-                      )}
+                      <div
+                        className={cn(
+                          "flex h-9 w-9 items-center justify-center rounded-full",
+                          isFirst ? "bg-emerald-700 text-white" : "bg-paper-muted text-ink-300"
+                        )}
+                      >
+                        {isFirst ? <Check className="size-4" /> : <Icon className="size-4" />}
+                      </div>
+                      <p className="text-sm font-semibold text-navy-900">
+                        {i + 1}. {step.label}
+                      </p>
+                      <p className="font-heading text-2xl font-bold text-navy-900">{step.count}</p>
                     </div>
-                    <p
-                      className={cn(
-                        "text-sm font-semibold",
-                        step.state === "upcoming" ? "text-ink-500" : "text-navy-900"
-                      )}
-                    >
-                      {i + 1}. {step.label}
-                    </p>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ol>
           </div>
 
@@ -78,10 +66,12 @@ export function StatusTracker() {
                 Upcoming Sighting
               </p>
               <p className="mt-2 font-heading text-3xl font-bold text-navy-900">
-                27 Aug 2026
+                {upcomingEstimate ?? "Not yet estimated"}
               </p>
               <p className="mt-1 text-sm text-ink-500">
-                29th of Sha&rsquo;ban 1448 AH &middot; observation window opens after Maghrib
+                {upcomingLabel
+                  ? `${upcomingLabel} · observation window opens after Maghrib`
+                  : "No upcoming cycle configured yet"}
               </p>
             </div>
             <div className="mt-6 rounded-lg bg-navy-50 p-4 text-sm text-navy-800">

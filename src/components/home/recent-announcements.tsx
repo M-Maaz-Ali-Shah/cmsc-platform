@@ -3,46 +3,14 @@ import { ArrowRight, CalendarDays } from "lucide-react";
 
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge, type badgeVariants } from "@/components/ui/badge";
-import type { VariantProps } from "class-variance-authority";
+import { Badge } from "@/components/ui/badge";
+import { PUBLIC_STATUS_BADGE, type AnnouncementRow, type PublicStatus } from "@/lib/types/announcements";
 
-type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
+interface RecentAnnouncementsProps {
+  announcements: AnnouncementRow[];
+}
 
-const announcements: {
-  month: string;
-  year: string;
-  decision: string;
-  date: string;
-  status: BadgeVariant;
-  statusLabel: string;
-}[] = [
-  {
-    month: "Ramadan",
-    year: "1448 AH",
-    decision: "Crescent sighted — Ramadan begins 20 Aug 2026",
-    date: "19 Aug 2026",
-    status: "confirmed",
-    statusLabel: "Confirmed",
-  },
-  {
-    month: "Sha'ban",
-    year: "1448 AH",
-    decision: "Crescent not sighted — month extended to 30 days",
-    date: "20 Jul 2026",
-    status: "notSighted",
-    statusLabel: "Not Sighted",
-  },
-  {
-    month: "Rajab",
-    year: "1448 AH",
-    decision: "Crescent sighted — Rajab confirmed",
-    date: "21 Jun 2026",
-    status: "sighted",
-    statusLabel: "Sighted",
-  },
-];
-
-export function RecentAnnouncements() {
+export function RecentAnnouncements({ announcements }: RecentAnnouncementsProps) {
   return (
     <section className="py-16 sm:py-20">
       <Container>
@@ -64,37 +32,47 @@ export function RecentAnnouncements() {
           </Link>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {announcements.map((item) => (
-            <Card key={item.month} className="flex flex-col">
-              <CardHeader className="flex-row items-start justify-between space-y-0">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">
-                    {item.month} &middot; {item.year}
+        {announcements.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border-subtle p-10 text-center text-sm text-ink-500">
+            No announcements have been published yet.
+          </p>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {announcements.map((item) => (
+              <Card key={item.id} className="flex flex-col">
+                <CardHeader className="flex-row items-start justify-between space-y-0">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">
+                      {item.month} &middot; {item.hijriYear}
+                    </p>
+                  </div>
+                  <Badge variant={PUBLIC_STATUS_BADGE[item.publicStatus as PublicStatus]}>
+                    {item.publicStatus}
+                  </Badge>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col justify-between gap-4">
+                  <p className="text-sm font-medium leading-relaxed text-navy-900">
+                    {item.decision}
                   </p>
-                </div>
-                <Badge variant={item.status}>{item.statusLabel}</Badge>
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col justify-between gap-4">
-                <p className="text-sm font-medium leading-relaxed text-navy-900">
-                  {item.decision}
-                </p>
-                <div className="flex items-center justify-between border-t border-border-subtle pt-4 text-xs text-ink-500">
-                  <span className="flex items-center gap-1.5">
-                    <CalendarDays className="size-3.5" aria-hidden />
-                    {item.date}
-                  </span>
-                  <Link
-                    href="/announcements"
-                    className="font-semibold text-navy-800 hover:underline"
-                  >
-                    Read more →
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="flex items-center justify-between border-t border-border-subtle pt-4 text-xs text-ink-500">
+                    <span className="flex items-center gap-1.5">
+                      <CalendarDays className="size-3.5" aria-hidden />
+                      {item.publishedAt
+                        ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(item.publishedAt)
+                        : "—"}
+                    </span>
+                    <Link
+                      href={`/announcements/${item.slug}`}
+                      className="font-semibold text-navy-800 hover:underline"
+                    >
+                      Read more →
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </Container>
     </section>
   );
