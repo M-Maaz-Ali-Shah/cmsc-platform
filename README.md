@@ -41,3 +41,20 @@ npm run dev
 Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS ·
 Drizzle ORM · Cloudflare D1 · Cloudflare R2 · Cloudflare Workers
 (`@opennextjs/cloudflare`) · Resend · Zod · jose (JWT)
+
+## Documentation
+
+- **[DEPLOY.md](./DEPLOY.md)** — full setup and deployment guide,
+  including a deployment checklist.
+- **[TESTING.md](./TESTING.md)** — how to run the Playwright suite (36
+  tests, run against the real Cloudflare Workers runtime), and what it
+  deliberately doesn't cover.
+- **[SECURITY.md](./SECURITY.md)** — what's actually implemented
+  (authentication, RBAC, rate limiting, input validation, headers, audit
+  logging) and the known gaps.
+- **[BACKUP.md](./BACKUP.md)** — D1/R2 backup, D1 Time Travel, and
+  rollback strategy.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, lint, build, and the full
+Playwright suite against a real `wrangler dev` on every PR and push to
+`main`; an optional job can also deploy — see DEPLOY.md's Option C.

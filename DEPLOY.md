@@ -36,10 +36,8 @@ git remote add origin https://github.com/<your-org-or-username>/<your-repo>.git
 git push -u origin main
 ```
 
-(The project already has two commits: the initial scaffold and the full
-backend build. `.gitignore` already excludes `node_modules`, `.next`,
-`.open-next`, `.wrangler`, and `.dev.vars` — your secrets are never
-committed.)
+(`.gitignore` already excludes `node_modules`, `.next`, `.open-next`,
+`.wrangler`, and `.dev.vars` — your secrets are never committed.)
 
 ---
 
@@ -176,9 +174,31 @@ the "GitHub live pages" workflow):
 5. From then on, every `git push` to your main branch triggers a fresh
    build and deploy automatically — no local Wrangler needed.
 
-Either way, once deployed, update `SITE_URL` in `wrangler.jsonc` (or the
-Worker's dashboard variables) to match the real deployed URL, then redeploy
-once so the email links are correct.
+**Option C — deploy from the included GitHub Actions workflow**
+(`.github/workflows/ci.yml`) instead of Cloudflare's own Git integration.
+This repo's CI already runs typecheck/lint/build/the Playwright suite on
+every PR and push (see [TESTING.md](./TESTING.md)); its `deploy` job can
+also do the actual Cloudflare deploy, but it's off by default so it never
+races with Option B if you set that up too:
+
+1. In your GitHub repo, go to **Settings → Secrets and variables →
+   Actions** and add two **repository secrets**: `CLOUDFLARE_API_TOKEN`
+   (create one in the Cloudflare dashboard under **My Profile → API
+   Tokens**, using the "Edit Cloudflare Workers" template) and
+   `CLOUDFLARE_ACCOUNT_ID` (shown on any Cloudflare dashboard page's
+   right sidebar).
+2. Add one **repository variable** named `ENABLE_ACTIONS_DEPLOY` set to
+   `true`.
+3. Push to `main`. Once the `checks` job passes, `deploy` runs
+   `npm run cf:deploy` automatically.
+
+Use **either** Option B **or** Option C, never both — two systems
+deploying the same Worker on every push will race each other and can
+overwrite one another's deploy mid-flight.
+
+Whichever option you use, once deployed, update `SITE_URL` in
+`wrangler.jsonc` (or the Worker's dashboard variables) to match the real
+deployed URL, then redeploy once so the email links are correct.
 
 ---
 
@@ -310,3 +330,45 @@ npm run cf:preview
 
 This builds with OpenNext and runs the real `wrangler dev` (workerd), the
 same runtime Cloudflare uses in production.
+
+---
+
+## Deployment checklist
+
+A condensed version of steps 1–10 above, to tick off for a first
+production deploy:
+
+- [ ] Code pushed to a GitHub repository (step 1)
+- [ ] `npx wrangler login` completed (step 2)
+- [ ] D1 database created, `database_id` filled in in `wrangler.jsonc`,
+      migrations applied (step 3)
+- [ ] Reference-data seed run (`npm run seed:remote`) — regions only, no
+      fabricated committee/contact data (step 3)
+- [ ] Both R2 buckets created (step 4)
+- [ ] `SESSION_SECRET`, `ADMIN_SETUP_TOKEN`, and (optional)
+      `RESEND_API_KEY` set as Wrangler secrets (step 5)
+- [ ] `SITE_URL` and `RESEND_FROM_EMAIL` updated in `wrangler.jsonc`
+      (step 5)
+- [ ] Deployed via **one** of: manual `npm run cf:deploy`, Cloudflare's
+      Git integration, or the GitHub Actions `deploy` job — not more
+      than one (step 6)
+- [ ] Custom domain attached, if desired (step 7)
+- [ ] First Super Admin account created via `/admin/setup`, then
+      `ADMIN_SETUP_TOKEN` rotated/removed (step 8)
+- [ ] Resend domain verified, if sending real subscriber/contact email
+      (step 9)
+- [ ] Smoke test passed: public pages load, a test sighting report and
+      a test contact message both appear in the dashboard (step 10)
+- [ ] If using GitHub Actions CI (recommended): `CLOUDFLARE_API_TOKEN` /
+      `CLOUDFLARE_ACCOUNT_ID` secrets and `ENABLE_ACTIONS_DEPLOY`
+      variable added, or deliberately left unset if deploying by another
+      method (Option C above)
+- [ ] Read [SECURITY.md](./SECURITY.md) and [BACKUP.md](./BACKUP.md)
+
+Still entirely manual, and outside what any tool in this environment can
+do on your behalf: registering/pointing a real domain's DNS, verifying a
+sending domain in Resend, creating the actual Cloudflare/GitHub/Resend
+accounts and their billing details, and any legal/policy review of the
+site's content (privacy policy, terms of use) your committee wants before
+going live — the boilerplate text in `/privacy-policy` and `/terms-of-use`
+is a starting point, not vetted legal advice.
