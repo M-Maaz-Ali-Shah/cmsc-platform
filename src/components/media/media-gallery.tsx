@@ -41,7 +41,7 @@ export function MediaGallery({ items }: { items: MediaRow[] }) {
               {item.fileKey && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={`/api/public-files/${item.fileKey}`}
+                  src={`/api/public-files/${item.fileKey}?w=512`}
                   alt={item.title}
                   className="absolute inset-0 h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
                 />

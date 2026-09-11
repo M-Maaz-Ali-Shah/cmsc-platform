@@ -7,6 +7,7 @@ declare global {
     // Bindings (wrangler.jsonc)
     DB: D1Database;
     UPLOADS: R2Bucket;
+    IMAGES: ImagesBinding;
 
     // Vars (wrangler.jsonc "vars", or .dev.vars locally)
     SITE_URL: string;

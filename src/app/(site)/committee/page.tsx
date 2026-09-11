@@ -49,7 +49,7 @@ export default async function CommitteePage() {
                     {member.photoKey ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={`/api/public-files/${member.photoKey}`}
+                        src={`/api/public-files/${member.photoKey}?w=128`}
                         alt={member.name}
                         className="h-full w-full object-cover"
                       />
