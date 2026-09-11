@@ -8,3 +8,10 @@ node_modules
 .wrangler
 *.tsbuildinfo
 .DS_Store
+
+# Playwright — contains a real session JWT for the test admin, and
+# run artifacts that are regenerated on every run.
+/tests/.auth
+/playwright-report
+/test-results
+/blob-report
