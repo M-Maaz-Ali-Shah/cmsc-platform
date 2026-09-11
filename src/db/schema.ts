@@ -13,6 +13,11 @@ export const users = sqliteTable("users", {
   role: text("role").notNull(),
   regionId: text("region_id"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
+  // Bumped on password reset so existing JWT sessions (which embed the
+  // version at sign-in) stop validating — see requireUser() in dal.ts.
+  // Sessions are otherwise stateless, so this is the only way to "log out"
+  // a user's other sessions without a server-side session store.
+  sessionVersion: integer("session_version").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

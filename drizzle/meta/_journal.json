@@ -29,6 +29,13 @@
       "when": 1789117254068,
       "tag": "0003_breezy_doomsday",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789118603800,
+      "tag": "0004_jittery_raider",
+      "breakpoints": true
     }
   ]
 }

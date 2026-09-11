@@ -24,6 +24,9 @@ export const verifySession = cache(async (): Promise<SessionPayload | null> => {
 export const requireUser = cache(async (allowedRoles?: Role[]) => {
   const session = await verifySession();
   if (!session) {
+    // Genuinely no cookie / a bad signature — plain /admin/login is fine,
+    // proxy.ts's own cookie-only check will already have caught this for
+    // any dashboard route, so this branch is normally unreachable there.
     redirect("/admin/login");
   }
 
@@ -35,8 +38,23 @@ export const requireUser = cache(async (allowedRoles?: Role[]) => {
     .limit(1);
   const user = rows[0];
 
+  // These two checks can be true even though the JWT's *signature* is
+  // still perfectly valid (deactivated since login, or a password reset
+  // bumped sessionVersion) — proxy.ts's cookie-only check can't tell the
+  // difference and would otherwise bounce straight back to /admin/dashboard,
+  // looping forever. Route through /admin/session-expired, a Route Handler
+  // that can actually clear the stale cookie (a Server Component can't).
   if (!user || !user.active) {
-    redirect("/admin/login");
+    redirect("/admin/session-expired");
+  }
+
+  // A password reset bumps users.sessionVersion — any JWT issued before
+  // that (which carries the old version) is rejected here even though the
+  // signature itself is still valid, effectively logging out other
+  // sessions. (session?.sessionVersion ?? 0) covers tokens issued before
+  // this field existed.
+  if ((session.sessionVersion ?? 0) !== user.sessionVersion) {
+    redirect("/admin/session-expired");
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role as Role)) {

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Lock, Mail } from "lucide-react";
 
 import { Field } from "@/components/ui/field";
@@ -61,6 +62,9 @@ export function LoginForm() {
           <input type="checkbox" className="size-3.5 accent-navy-900" />
           Remember this device
         </label>
+        <Link href="/admin/forgot-password" className="font-semibold text-navy-800 underline-offset-4 hover:underline">
+          Forgot password?
+        </Link>
       </div>
 
       <Button type="submit" size="lg" className="w-full justify-center" disabled={pending}>

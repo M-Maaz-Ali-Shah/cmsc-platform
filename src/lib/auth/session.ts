@@ -16,6 +16,12 @@ export interface SessionPayload {
   email: string;
   name: string;
   role: Role;
+  // Compared against users.sessionVersion in requireUser() — bumping the DB
+  // column (e.g. on password reset) invalidates every JWT issued before
+  // the bump, since old tokens carry the old version. Optional only for
+  // backward-compat with any already-issued token from before this field
+  // existed; treated as 0 if absent.
+  sessionVersion?: number;
   [key: string]: unknown;
 }
 

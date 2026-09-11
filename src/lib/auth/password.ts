@@ -69,6 +69,21 @@ export function generateRandomToken(bytes = 24): string {
 }
 
 /**
+ * Hashes a high-entropy random token (e.g. a password-reset token) for
+ * storage — SHA-256, not PBKDF2. PBKDF2's deliberate slowness exists to
+ * blunt brute-forcing a low-entropy human password; a 24-byte random token
+ * already has far more entropy than any password could, so a fast
+ * cryptographic hash is the standard, appropriate choice here (same
+ * approach Django's PasswordResetTokenGenerator and most frameworks use).
+ * We still never store the raw token — only this hash, so a database leak
+ * doesn't hand out usable reset links.
+ */
+export async function hashToken(token: string): Promise<string> {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return toHex(bytes);
+}
+
+/**
  * Constant-time string comparison — use for any secret comparison (setup
  * tokens, reset tokens, etc.) instead of `===`, which short-circuits on the
  * first mismatched character and can leak timing information.
