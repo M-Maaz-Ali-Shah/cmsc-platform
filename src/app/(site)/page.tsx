@@ -51,7 +51,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
+      <Hero regionsCovered={regionsRows.length} />
       <CurrentMonth
         current={
           current

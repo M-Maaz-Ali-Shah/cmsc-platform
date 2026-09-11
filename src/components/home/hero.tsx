@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 
-export function Hero() {
+interface HeroProps {
+  regionsCovered: number;
+}
+
+export function Hero({ regionsCovered }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-navy-950 text-white">
       {/* astronomical backdrop */}
@@ -55,7 +59,7 @@ export function Hero() {
             <dl className="mt-12 grid max-w-md grid-cols-3 gap-6 border-t border-white/10 pt-6 text-sm">
               <div>
                 <dt className="text-white/50">Regions covered</dt>
-                <dd className="mt-1 font-heading text-2xl font-bold text-white">14+</dd>
+                <dd className="mt-1 font-heading text-2xl font-bold text-white">{regionsCovered}</dd>
               </div>
               <div>
                 <dt className="text-white/50">Countries</dt>
