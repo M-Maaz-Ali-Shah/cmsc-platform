@@ -23,7 +23,7 @@
 		{
 			"binding": "DB",
 			"database_name": "cmsc-platform-db",
-			"database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+			"database_id": "d641d7f7-e200-4b63-b41c-616a6f68b1d9",
 			"migrations_dir": "drizzle"
 		}
 	],
