@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How the Central Moon Sighting Committee GB & EU handles personal information.",
+  alternates: { canonical: "/privacy-policy" },
 };
 
 const DEFAULT_BODY = [

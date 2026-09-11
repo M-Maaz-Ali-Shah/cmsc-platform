@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Report a Sighting",
   description:
     "Submit a moon-sighting observation report to the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/report-sighting" },
 };
 
 export default function ReportSightingPage() {

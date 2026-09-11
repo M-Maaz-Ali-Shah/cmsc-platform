@@ -16,6 +16,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/contact" },
 };
 
 export default async function ContactPage() {

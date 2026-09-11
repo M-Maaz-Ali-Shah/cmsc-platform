@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "How Moon Sighting Works",
   description:
     "An educational overview of crescent moon observation and how the Central Moon Sighting Committee GB & EU reviews reports and reaches decisions.",
+  alternates: { canonical: "/how-moon-sighting-works" },
 };
 
 const stages = [

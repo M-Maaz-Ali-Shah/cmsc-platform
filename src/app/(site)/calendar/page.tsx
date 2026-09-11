@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Islamic Calendar",
   description:
     "The Islamic calendar with astronomical crescent-visibility estimates shown alongside official committee announcements.",
+  alternates: { canonical: "/calendar" },
 };
 
 export default async function CalendarPage() {

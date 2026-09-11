@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { asc, desc, eq } from "drizzle-orm";
 
 import { Hero } from "@/components/home/hero";
@@ -17,6 +18,10 @@ import { CALENDAR_STATUS_MAP } from "@/lib/calendar-data";
 import { getPublishedContent } from "@/app/actions/content";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const REVIEW_STATUSES = ["Received", "Under Review", "Contact Verification"];
 const DECIDED_STATUSES = ["Accepted", "Rejected", "Included in Decision"];

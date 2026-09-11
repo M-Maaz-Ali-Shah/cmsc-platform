@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: "Observers",
   description:
     "About the volunteer observer network that supports the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/observers" },
 };
 
 const VERIFIED_STATUSES = ["Accepted", "Included in Decision"];

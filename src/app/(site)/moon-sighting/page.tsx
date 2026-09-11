@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: "Moon Sighting",
   description:
     "Current moon-sighting status for the Central Moon Sighting Committee GB & EU, including the live review pipeline and regional reporting summary.",
+  alternates: { canonical: "/moon-sighting" },
 };
 
 const REVIEW_STATUSES = ["Received", "Under Review", "Contact Verification"];

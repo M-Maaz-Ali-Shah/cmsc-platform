@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Media",
   description: "Photos, videos and recordings from the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/media" },
 };
 
 export default async function MediaPage() {

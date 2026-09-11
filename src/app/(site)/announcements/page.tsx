@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Announcements Archive",
   description:
     "Search and browse official moon-sighting announcements published by the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/announcements" },
 };
 
 // ArchiveBrowser does its own client-side search/month/year/type filtering

@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Committee",
   description:
     "Governance and membership structure of the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/committee" },
 };
 
 export default async function CommitteePage() {

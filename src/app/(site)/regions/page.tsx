@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "GB & EU Regions",
   description:
     "Regional coverage network for the Central Moon Sighting Committee across Great Britain and Europe.",
+  alternates: { canonical: "/regions" },
 };
 
 interface RegionDisplay {

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: "Documents",
   description:
     "Official statements, guidelines and reports published by the Central Moon Sighting Committee GB & EU.",
+  alternates: { canonical: "/documents" },
 };
 
 export default async function DocumentsPage() {

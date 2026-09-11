@@ -33,6 +33,8 @@ export async function generateMetadata(
   return {
     title: `${item.month} ${item.hijriYear} — ${item.publicStatus}`,
     description: item.summary,
+    alternates: { canonical: `/announcements/${item.slug}` },
+    openGraph: { title: `${item.month} ${item.hijriYear} — ${item.publicStatus}`, description: item.summary },
   };
 }
 

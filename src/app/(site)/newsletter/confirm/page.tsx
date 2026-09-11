@@ -11,6 +11,9 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Confirm Subscription",
+  // Single-use, token-specific action page — not real indexable content,
+  // and also already excluded via /newsletter/ in robots.ts.
+  robots: { index: false, follow: false },
 };
 
 export default async function ConfirmNewsletterPage({

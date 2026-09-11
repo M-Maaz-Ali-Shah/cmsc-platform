@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Terms of Use",
   description: "Terms governing use of the Central Moon Sighting Committee GB & EU website.",
+  alternates: { canonical: "/terms-of-use" },
 };
 
 const DEFAULT_BODY = [
